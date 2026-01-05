@@ -1,0 +1,59 @@
+﻿using BepInEx;
+using BepInEx.Configuration;
+using HarmonyLib;
+using ModdedModesAPI.ModesAPI;
+using MTM101BaldAPI;
+using MTM101BaldAPI.AssetTools;
+using MTM101BaldAPI.Registers;
+using NULL.CustomComponents;
+using System.IO;
+
+namespace NULL
+{
+    [BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("pixelguy.pixelmodding.baldiplus.pixelinternalapi", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("pixelguy.pixelmodding.baldiplus.moddedmodesapi", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("pixelguy.pixelmodding.baldiplus.bbextracontent", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInPlugin(ModInfo.ID, ModInfo.NAME, ModInfo.VERSION)]
+    public class BasePlugin : BaseUnityPlugin
+    {
+        internal static Harmony harmony = new Harmony(ModInfo.ID);
+        public static string ModPath;
+        internal static ConfigEntry<bool> characters;
+        internal static ConfigEntry<bool> darkAtmosphere;
+        internal static ConfigEntry<int> nullHealth;
+        internal static ConfigEntry<int> glitchHealth;
+
+        private void Awake() {
+            Manager.ModManager.plug = this;
+            ModPath = AssetLoader.GetModPath(this);
+
+            characters = Config.Bind("Null Style settings", "Enable another characters", false, "Setting this \"true\" will enable other characters on the floor except Null/Red Baldloon");
+            darkAtmosphere = Config.Bind("Null Style settings", "Enable the dark atmosphere", true, "Setting this \"true\" will enable the dark atmosphere, which makes the level darker and more creepy");
+            nullHealth = Config.Bind("Null Style settings", "Health", 10, "Setting a custom amount of null's health");
+            glitchHealth = Config.Bind("Glitch Style settings", "Health", 10, "Setting a custom amount of glitch's health");
+
+            gameObject.AddComponent<DebugManager>();
+
+            harmony.PatchAllConditionals();
+
+            LoadingEvents.RegisterOnAssetsLoaded(Info, Manager.ModManager.LoadContent(), LoadingEventOrder.Pre);
+            LoadingEvents.RegisterOnAssetsLoaded(Info, () => Manager.ModManager.TryRunMethod(Manager.ModManager.LoadScenes), LoadingEventOrder.Post);
+
+            AssetLoader.LocalizationFromFile(Path.Combine(ModPath, "Language", "English", "SubtitlesEn.json"), Language.English);
+            CustomModesHandler.OnMainMenuInitialize += ModPatches.MenuPatcher.ConstructMenu;
+        }
+
+        public static void RePatch() {
+            harmony.UnpatchSelf();
+            harmony.PatchAllConditionals();
+        }
+    }
+
+    static class ModInfo
+    {
+        public const string ID = "levs_kittne.baldiplus.null";
+        public const string NAME = "NULL";
+        public const string VERSION = "1.2.5";
+    }
+}
