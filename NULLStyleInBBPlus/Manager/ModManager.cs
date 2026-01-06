@@ -5,7 +5,6 @@ using DevTools.Patches;
 using MTM101BaldAPI;
 using MTM101BaldAPI.AssetTools;
 using MTM101BaldAPI.Reflection;
-using MTM101BaldAPI.ObjectCreation;
 using MTM101BaldAPI.Registers;
 using NULL.Content;
 using NULL.CustomComponents;
@@ -21,13 +20,9 @@ using static MTM101BaldAPI.AssetTools.AssetLoader;
 using static NULL.BasePlugin;
 using static PixelInternalAPI.Extensions.GenericExtensions;
 using static UnityEngine.Object;
-using DevTools.DevAPI.Extensions;
-using System.Threading;
 
-namespace NULL.Manager
-{
-    internal static partial class ModManager
-    {
+namespace NULL.Manager {
+    internal static partial class ModManager {
         public static BasePlugin plug;
 
         static bool _nullStyle;
@@ -46,6 +41,7 @@ namespace NULL.Manager
                     GlitchStyle = false;
             }
         }
+
         public static bool GlitchStyle {
             get => _nullStyle && _glitchStyle;
             set {
@@ -56,12 +52,16 @@ namespace NULL.Manager
                 RePatch();
             }
         }
-        public static bool DoubleTrouble { //glitch style for test in use
-            get => _nullStyle && _glitchStyle;
+
+        public static bool DoubleTrouble {
+            get => _nullStyle && _glitchStyle && _doubleTrouble;
             set {
-                _glitchStyle = value;
+                _doubleTrouble = value;
                 if (!NullStyle && value)
                     NullStyle = value;
+
+                if (!GlitchStyle && value)
+                    GlitchStyle = value;
 
                 RePatch();
             }
@@ -69,7 +69,7 @@ namespace NULL.Manager
 
         internal static List<SceneObject> nullScenes = new List<SceneObject>();
         internal static Dictionary<string, CustomLevelObject> nullLevels = new Dictionary<string, CustomLevelObject>();
-
+        
         internal static IEnumerator LoadContent() {
             bool e = Plugins.IsEditor;
             yield return e ? 4 : 3;
@@ -79,7 +79,8 @@ namespace NULL.Manager
             TryRunMethod(CreateNPCs);
             yield return "Loading captions...";
             TryRunMethod(LoadCaptions);
-            if (e) {
+            if (e)
+            {
                 yield return "Registering NULL & GLITCH for Level Studio...";
                 EditorCompat.Register();
             }
@@ -348,12 +349,24 @@ namespace NULL.Manager
             }
 
             var doorMats = Find<StandardDoorMats>("ClassDoorSet");
+
+            var customDoorMats = ScriptableObject.CreateInstance<StandardDoorMats>();
+            customDoorMats.name = "MyOfficeDoorMats";
+
+            Material openMat = new Material(doorMats.open);
+            openMat.mainTexture = m.Get<Sprite>("MyOffice_Open").texture;
+            customDoorMats.open = openMat;
+
+            Material closedMat = new Material(doorMats.shut);
+            closedMat.mainTexture = m.Get<Sprite>("MyOffice_Closed").texture;
+            customDoorMats.shut = closedMat;
+
             RoomData data = new RoomData()
             {
                 name = "Office",
                 category = RoomCategory.Office,
                 type = RoomType.Room,
-                doorMats = doorMats,
+                doorMats = customDoorMats,
                 florTex = m.Get<Sprite>("BasicRealCarpet").texture,
                 wallTex = m.Get<Sprite>("BasicRealWall").texture,
                 ceilTex = m.Get<Sprite>("BasicRealCeiling").texture,

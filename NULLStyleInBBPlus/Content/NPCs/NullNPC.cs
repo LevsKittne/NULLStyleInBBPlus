@@ -119,7 +119,7 @@ namespace NULL.NPCs
 
         public override void Slap() {
             slapTotal = 0f;
-            slapDistance = nextSlapDistance * 2f;
+            slapDistance = nextSlapDistance/* * 1.5f*/;
             nextSlapDistance = 0f;
             var speed = !slideMode ? slapDistance / (Delay * MovementPortion) : ((float)this.ReflectionGetVariable("anger") + baseSpeed + (float)this.ReflectionGetVariable("extraAnger"));
 

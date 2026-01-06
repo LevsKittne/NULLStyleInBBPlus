@@ -19,15 +19,20 @@ namespace NULL
     {
         internal static Harmony harmony = new Harmony(ModInfo.ID);
         public static string ModPath;
+
         internal static ConfigEntry<bool> characters;
         internal static ConfigEntry<bool> darkAtmosphere;
+        internal static ConfigEntry<bool> disableResultsTV;
         internal static ConfigEntry<int> nullHealth;
 
         private void Awake() {
             Manager.ModManager.plug = this;
+            Manager.OptionsManager.Register();
             ModPath = AssetLoader.GetModPath(this);
+
             characters = Config.Bind("Null Style settings", "Enable another characters", false, "Setting this \"true\" will enable other characters on the floor except Null/Red Baldloon");
             darkAtmosphere = Config.Bind("Null Style settings", "Enable the dark atmosphere", true, "Setting this \"true\" will enable the dark atmosphere, which makes the level darker and more creepy");
+            disableResultsTV = Config.Bind("Null Style settings", "Disable Results TV", true, "If true, the score screen in the elevator will be hidden and the animation skipped.");
             nullHealth = Config.Bind("Null Style settings", "Health", 10, "Setting a custom amount of null's health");
 
             gameObject.AddComponent<DebugManager>();

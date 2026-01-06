@@ -1,5 +1,4 @@
-﻿//using BBTimes.CustomContent.Misc;
-using DevTools;
+﻿using DevTools;
 using HarmonyLib;
 using MTM101BaldAPI.Reflection;
 using NULL.Content;
@@ -28,14 +27,18 @@ namespace NULL.Manager.CompatibilityModule
         [HarmonyPrefix]
         static void OnStartBossIntro(BossManager __instance) {
             var n = __instance.nullNpc;
-            try
+            if (n != null)
             {
-                n.StopCoroutine(angerCoroutine);
+                try
+                {
+                    n.StopCoroutine(angerCoroutine);
+                }
+                catch { }
+                n.SetAnger(_fixedAnger);
             }
-            catch { }
-            n.SetAnger(_fixedAnger);
             Singleton<MusicManager>.Instance.StopFile();
         }
+
         [HarmonyPatch(typeof(NullPlusManager), "ElevatorClosed")]
         [HarmonyPostfix]
         static void StoreAngerBeforeRage(NullPlusManager __instance) {

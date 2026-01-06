@@ -9,12 +9,13 @@ using NULL.NPCs;
 using BepInEx.Bootstrap;
 using System.Reflection;
 
-namespace NULL.ModPatches {
+namespace NULL.ModPatches
+{
     [HarmonyPatch]
-    internal class GenerationChanges {
-        
-        static bool IsEditor()
-        {
+    internal class GenerationChanges
+    {
+
+        static bool IsEditor() {
             if (!Chainloader.PluginInfos.ContainsKey("mtm101.rulerp.baldiplus.levelstudio")) return false;
 
             Type editorType = Type.GetType("PlusLevelStudio.Editor.EditorController, PlusLevelStudio");
@@ -38,9 +39,10 @@ namespace NULL.ModPatches {
         [HarmonyPrefix]
         private static void ModifyGenerationParameters(LevelGenerator __instance) {
             if (IsEditor()) return;
+
             if (!ModManager.NullStyle && !ModManager.DoubleTrouble) return;
 
-            try 
+            try
             {
                 LevelGenerationParameters ld = __instance.ld;
 
@@ -54,26 +56,52 @@ namespace NULL.ModPatches {
                 ld.potentialStructures = new WeightedStructureWithParameters[0];
                 ld.forcedStructures = new StructureWithParameters[0];
 
+                var nullNpc = ModManager.m.Get<NullNPC>("NULL");
+                var glitchNpc = ModManager.m.Get<NullNPC>("NULLGLITCH");
+
+                if (nullNpc == null) Debug.LogError("NULL NPC not found in AssetManager!");
+                if (glitchNpc == null) Debug.LogError("NULLGLITCH NPC not found in AssetManager!");
+
                 if (ModManager.DoubleTrouble)
                 {
-                    var nullNpc = ModManager.m.Get<NullNPC>("NULL");
-                    var glitchNpc = ModManager.m.Get<NullNPC>("NULLGLITCH");
-                    ld.potentialBaldis = new WeightedNPC[0];
-                    ld.potentialNPCs = new List<WeightedNPC>();
-                    var forcedList = new List<NPC>();
-                    if (nullNpc) forcedList.Add(nullNpc);
-                    if (glitchNpc) forcedList.Add(glitchNpc);
+                    if (nullNpc != null)
+                    {
+                        ld.potentialBaldis = new WeightedNPC[] {
+                            new WeightedNPC() { selection = nullNpc, weight = 100 }
+                        };
+                    }
+                    else
+                    {
+                        ld.potentialBaldis = new WeightedNPC[0];
+                    }
 
+                    var forcedList = new List<NPC>();
+                    if (glitchNpc != null) forcedList.Add(glitchNpc);
                     ld.forcedNpcs = forcedList.ToArray();
+                }
+                else if (ModManager.NullStyle)
+                {
+                    var targetNpc = ModManager.GlitchStyle ? glitchNpc : nullNpc;
+
+                    if (targetNpc != null)
+                    {
+                        ld.potentialBaldis = new WeightedNPC[] {
+                            new WeightedNPC() { selection = targetNpc, weight = 100 }
+                        };
+                    }
+                    ld.forcedNpcs = new NPC[0];
                 }
 
                 if (ld.standardHallBuilders != null)
                 {
                     var filteredBuilders = new List<RandomHallBuilder>();
-                    foreach (var builder in ld.standardHallBuilders) {
-                        if (builder.selectable != null) {
+                    foreach (var builder in ld.standardHallBuilders)
+                    {
+                        if (builder.selectable != null)
+                        {
                             string name = builder.selectable.name.ToLower();
-                            if (!name.Contains("door") && !name.Contains("gate") && !name.Contains("lock") && !name.Contains("coin")) {
+                            if (!name.Contains("door") && !name.Contains("gate") && !name.Contains("lock") && !name.Contains("coin"))
+                            {
                                 filteredBuilders.Add(builder);
                             }
                         }
@@ -81,7 +109,11 @@ namespace NULL.ModPatches {
                     ld.standardHallBuilders = filteredBuilders.ToArray();
                 }
             }
-            catch {}
+            catch (Exception e)
+            {
+                Debug.LogError("Error in GenerationChanges: " + e.Message);
+                Debug.LogException(e);
+            }
         }
 
         [HarmonyPatch(typeof(LevelBuilder), "LoadRoom", new Type[] {
@@ -99,7 +131,7 @@ namespace NULL.ModPatches {
             if (IsEditor()) return;
             if (!ModManager.NullStyle || __result == null) return;
 
-            try 
+            try
             {
                 if (__result.doorPre != null && __result.doorPre.GetComponent<FacultyOnlyDoor>() != null)
                 {
@@ -119,7 +151,7 @@ namespace NULL.ModPatches {
                     }
                 }
             }
-            catch {}
+            catch { }
         }
 
         [HarmonyPatch(typeof(EnvironmentController), "AddEvent")]

@@ -1,18 +1,20 @@
 ﻿using DevTools;
 using HarmonyLib;
 using MTM101BaldAPI.Reflection;
-using NULL.Content;
 using NULL.NPCs;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using TMPro;
 using UnityEngine;
 using static DevTools.ExtraVariables;
+using NULL.Content;
 
-namespace NULL.ModPatches.Fixes {
+namespace NULL.ModPatches.Fixes
+{
     [ConditionalPatchNULL]
     [HarmonyPatch]
-    internal class MinorFixes {
+    internal class MinorFixes
+    {
         [HarmonyPatch(typeof(Baldi), "Praise")]
         [HarmonyPrefix]
         static bool NoPraise(Baldi __instance) => !(__instance is NullNPC);
@@ -51,7 +53,8 @@ namespace NULL.ModPatches.Fixes {
 
         [ConditionalPatchNULL]
         [HarmonyPatch(typeof(BaldiTV))]
-        internal class BaldiTVFixes {
+        internal class BaldiTVFixes
+        {
             [HarmonyPatch(typeof(BaldiTV), nameof(BaldiTV.AnnounceEvent))]
             [HarmonyPatch(typeof(BaldiTV), nameof(BaldiTV.Speak))]
             [HarmonyPrefix]
@@ -70,11 +73,13 @@ namespace NULL.ModPatches.Fixes {
             static IEnumerable<CodeInstruction> SetNullOnTV(IEnumerable<CodeInstruction> instructions) {
                 var codes = new List<CodeInstruction>(instructions);
 
-                for (int i = 0; i < codes.Count - 3; i++) {
+                for (int i = 0; i < codes.Count - 3; i++)
+                {
                     if (codes[i].opcode == OpCodes.Ldloc_1 &&
                         codes[i + 1].opcode == OpCodes.Ldfld && codes[i + 1].operand.ToString().Contains("staticObject") &&
                         codes[i + 2].opcode == OpCodes.Ldc_I4_1 &&
-                        codes[i + 3].opcode == OpCodes.Callvirt && codes[i + 3].operand.ToString().Contains("SetActive")) {
+                        codes[i + 3].opcode == OpCodes.Callvirt && codes[i + 3].operand.ToString().Contains("SetActive"))
+                    {
                         var newInsts = new List<CodeInstruction>
                         {
                             new CodeInstruction(OpCodes.Ldloc_1),
