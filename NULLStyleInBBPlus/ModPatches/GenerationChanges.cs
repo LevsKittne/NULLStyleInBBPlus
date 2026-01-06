@@ -89,7 +89,8 @@ namespace NULL.ModPatches
                             new WeightedNPC() { selection = targetNpc, weight = 100 }
                         };
                     }
-                    ld.forcedNpcs = new NPC[0];
+                    if (!NULL.BasePlugin.characters.Value)
+                        ld.forcedNpcs = new NPC[0];
                 }
 
                 if (ld.standardHallBuilders != null)

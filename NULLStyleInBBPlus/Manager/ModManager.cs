@@ -21,17 +21,21 @@ using static NULL.BasePlugin;
 using static PixelInternalAPI.Extensions.GenericExtensions;
 using static UnityEngine.Object;
 
-namespace NULL.Manager {
-    internal static partial class ModManager {
+namespace NULL.Manager
+{
+    internal static partial class ModManager
+    {
         public static BasePlugin plug;
 
         static bool _nullStyle;
         static bool _glitchStyle;
         static bool _doubleTrouble;
         public static AssetManager m = new AssetManager();
-        public static bool NullStyle {
+        public static bool NullStyle
+        {
             get => _nullStyle;
-            set {
+            set
+            {
                 _nullStyle = value;
 
                 if (!_glitchStyle)
@@ -42,9 +46,11 @@ namespace NULL.Manager {
             }
         }
 
-        public static bool GlitchStyle {
+        public static bool GlitchStyle
+        {
             get => _nullStyle && _glitchStyle;
-            set {
+            set
+            {
                 _glitchStyle = value;
                 if (!NullStyle && value)
                     NullStyle = value;
@@ -53,9 +59,11 @@ namespace NULL.Manager {
             }
         }
 
-        public static bool DoubleTrouble {
+        public static bool DoubleTrouble
+        {
             get => _nullStyle && _glitchStyle && _doubleTrouble;
-            set {
+            set
+            {
                 _doubleTrouble = value;
                 if (!NullStyle && value)
                     NullStyle = value;
@@ -69,7 +77,7 @@ namespace NULL.Manager {
 
         internal static List<SceneObject> nullScenes = new List<SceneObject>();
         internal static Dictionary<string, CustomLevelObject> nullLevels = new Dictionary<string, CustomLevelObject>();
-        
+
         internal static IEnumerator LoadContent() {
             bool e = Plugins.IsEditor;
             yield return e ? 4 : 3;
@@ -252,7 +260,7 @@ namespace NULL.Manager {
                     }
                     else
                     {
-                        scene.potentialNPCs = new List<WeightedNPC> { new WeightedNPC() { selection = m.Get<NullNPC>(!scene.levelObject.name.Contains("GLITCH") ? "NULL" : "NULLGLITCH"), weight = 100 } };
+                        scene.potentialNPCs = new List<WeightedNPC>(obj.potentialNPCs);
                     }
 
                     scene.MarkAsNeverUnload();

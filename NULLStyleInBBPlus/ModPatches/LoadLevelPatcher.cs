@@ -6,10 +6,12 @@ using NULL.Manager;
 using static NULL.Manager.ModManager;
 using static System.Text.RegularExpressions.Regex;
 
-namespace NULL.ModPatches {
+namespace NULL.ModPatches
+{
     [ConditionalPatchNULL]
     [HarmonyPatch]
-    internal class LevelLoaderPatcher {
+    internal class LevelLoaderPatcher
+    {
         [HarmonyPatch(typeof(GameLoader), nameof(GameLoader.LoadLevel))]
         [HarmonyPatch(typeof(BaseGameManager), "LoadSceneObject", new[] { typeof(SceneObject) })]
         [HarmonyPrefix]
@@ -28,14 +30,14 @@ namespace NULL.ModPatches {
 
             sceneObject.SetLevel(nullLevels[GetLevelKey(sceneObject.levelObject.name, GlitchStyle, BasePlugin.characters.Value)]);
 
-            if (ModManager.DoubleTrouble) {
+            if (ModManager.DoubleTrouble)
+            {
                 sceneObject.levelTitle = "DT" + (sceneObject.levelNo + 1);
             }
-            else {
-                if (IsMatch(sceneObject.levelTitle, @"^N\d$") && sceneObject.levelObject.name.Contains("GLITCH"))
-                    sceneObject.levelTitle = sceneObject.levelTitle.Replace("N", "G");
-                else if (IsMatch(sceneObject.levelTitle, @"^G\d$") && sceneObject.levelObject.name.Contains("NULL"))
-                    sceneObject.levelTitle = sceneObject.levelTitle.Replace("G", "N");
+            else
+            {
+                string prefix = sceneObject.levelObject.name.Contains("GLITCH") ? "G" : "N";
+                sceneObject.levelTitle = prefix + (sceneObject.levelNo + 1);
             }
         }
     }
