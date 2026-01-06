@@ -37,7 +37,7 @@ namespace NULL.NPCs
             var audMan = GetComponent<AudioManager>();
             audMan.ReflectionSetVariable("subtitleColor", Color.white);
             audMan.ReflectionSetVariable("overrideSubtitleColor", false);
-            audMan.ignoreListenerPause = true;
+            audMan.ignoreListenerPause = false; //true
 
             navigator.Initialize(ec);
             navigator.passableObstacles.Add(PassableObstacle.Window);

@@ -1,7 +1,9 @@
 ﻿using HarmonyLib;
 using NULL.Content;
+using DevTools;
 
 namespace NULL.ModPatches {
+    [ConditionalPatchNULL]
     [HarmonyPatch(typeof(PlayerMovement), "Update")]
     internal class PlayerSpeedPatch {
         [HarmonyPrefix]

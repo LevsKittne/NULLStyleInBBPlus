@@ -118,7 +118,7 @@ namespace NULL.Content
             else
             {
                 currentBossSpeed += 0.5f;
-                currentPlayerSpeed += 0.575f;
+                currentPlayerSpeed += 2f;
             }
 
             if (nullNpc != null)
