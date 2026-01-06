@@ -1,16 +1,13 @@
 ﻿using DevTools;
 using DevTools.Extensions;
 using MTM101BaldAPI.Reflection;
-using NULL.Content;
 using NULL.CustomComponents;
 using NULL.Manager;
 using NULL.NPCs;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using static DevTools.ExtraVariables;
 using static NULL.Manager.CompatibilityModule.Plugins;
-using static NULL.Manager.ModManager;
 
 namespace NULL.Content
 {
@@ -18,131 +15,63 @@ namespace NULL.Content
     {
         public static BossManager Instance { get; private set; }
         public bool BossActive { get; set; } = false;
-        public bool fightStarted = false;
         public bool PlayerHasProjectile { get; set; } = false;
-
+        public int health = BasePlugin.nullHealth.Value;
         public bool bossTransitionWaiting = false, holdBeat = true;
         readonly float initMusSpeed = 0.8f;
         MusicManager MusMan { get => Singleton<MusicManager>.Instance; }
         internal static List<NullProjectile> projectiles = new List<NullProjectile>();
-
-        public IEnumerable<NullNPC> ActiveBosses => bossHealths.Keys;
+        internal NullNPC nullNpc => NullPlusManager.instance.nullNpc;
 
         public float currentBossSpeed = 6f;
         public float currentPlayerSpeed = 19f;
 
-        private Dictionary<NullNPC, int> bossHealths = new Dictionary<NullNPC, int>();
-        private Dictionary<NullNPC, int> healthOverrides = new Dictionary<NullNPC, int>();
-        private int totalMaxHealth = 0;
-
-        public int TotalHealth => bossHealths.Values.Sum();
-
-        void Awake() {
-            Instance = this;
-        }
+        void Start() => Instance = this;
 
         void Update() {
-            if (BossActive && fightStarted && !bossTransitionWaiting)
+            if (BossActive && !bossTransitionWaiting)
             {
-                foreach (var npc in ActiveBosses)
+                if (nullNpc != null)
                 {
-                    if (npc == null) continue;
-                    if (npc.baseSpeed != currentBossSpeed)
-                    {
-                        npc.baseSpeed = currentBossSpeed;
-                        npc.ReflectionSetVariable("baseSpeed", currentBossSpeed);
-                    }
-                    if (!npc.slideMode) npc.slideMode = true;
+                    nullNpc.baseSpeed = currentBossSpeed;
+                    nullNpc.ReflectionSetVariable("baseSpeed", currentBossSpeed);
+                    if (!nullNpc.slideMode) nullNpc.slideMode = true;
                 }
-            }
-        }
-
-        public void SetNPCHealth(NullNPC npc, int hp) {
-            if (healthOverrides.ContainsKey(npc))
-            {
-                healthOverrides[npc] = hp;
-            }
-            else
-            {
-                healthOverrides.Add(npc, hp);
             }
         }
 
         public void StartBossIntro() {
-            BossActive = true;
-            fightStarted = false;
-
-            try
+            if (!nullNpc.isGlitch)
             {
-                ForceCloseAllElevators();
-                HideHuds(true);
-                pm.itm.enabled = false;
-                StopAllEvents();
-                RemoveAllItems();
-                ClearEffects();
-                RemoveAllProjectiles();
-                ec.StopAllCoroutines();
-                freezeElevators = false;
-
-                bossHealths.Clear();
-                totalMaxHealth = 0;
-                var allBosses = FindObjectsOfType<NullNPC>();
-
-                foreach (var npc in allBosses)
-                {
-                    int hp = healthOverrides.ContainsKey(npc) ? healthOverrides[npc] : (npc.isGlitch ? BasePlugin.glitchHealth.Value : BasePlugin.nullHealth.Value);
-
-                    bossHealths.Add(npc, hp);
-                    totalMaxHealth += hp;
-
-                    if (!npc.isGlitch)
-                    {
-                        npc.AudMan.QueueAudio("Null_PreBoss_Intro");
-                        npc.AudMan.QueueAudio("Null_PreBoss_Loop", true);
-                    }
-                    else
-                    {
-                        npc.AudMan.FlushQueue(true);
-                    }
-
-                    if (!IsTimes)
-                    {
-                        npc.GetAngry(-168);
-                    }
-
-                    npc.transform.position = ec.CellFromPosition(pm.transform.position).TileTransform.position + pm.transform.forward * 15f;
-                    npc.transform.LookAt(pm.transform);
-                    npc.Pause();
-                }
-
-                MusMan.PlayMidi("custom_BossIntro", false);
-                MusMan.SetSpeed(initMusSpeed);
-                MusMan.StopFile();
-
-                holdBeat = true;
-                SpawnInitialProjectiles();
+                nullNpc.AudMan.QueueAudio("Null_PreBoss_Intro");
+                nullNpc.AudMan.QueueAudio("Null_PreBoss_Loop", true);
             }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"[NULL Mod] Error in StartBossIntro: {e.Message}");
-                holdBeat = false;
-                StartBossFight();
-            }
+            if (!IsTimes)
+                nullNpc.GetAngry(-168);
+
+            nullNpc.Pause();
+            MusMan.PlayMidi("custom_BossIntro", true);
+            MusMan.SetSpeed(initMusSpeed);
+            holdBeat = true;
+            pm.itm.enabled = false;
+            ClearEffects();
+            RemoveAllProjectiles();
+            ec.StopAllCoroutines();
+            MusMan.StopFile();
+            HideHuds(true);
+            freezeElevators = false;
+            ForceCloseAllElevators();
+            StopAllEvents();
+            RemoveAllItems();
+            SpawnInitialProjectiles();
         }
 
         public void StartBossFight() {
             holdBeat = false;
-            fightStarted = true;
-
-            foreach (var npc in ActiveBosses)
-            {
-                if (npc == null) continue;
-                npc.slideMode = true;
-                npc.behaviorStateMachine.ChangeState(new NullNPC_Chase(npc, npc));
-            }
-
+            nullNpc.slideMode = true;
+            nullNpc.behaviorStateMachine.ChangeState(new NullNPC_Chase(nullNpc, nullNpc));
             MusMan.PlayMidi("custom_BossLoop", true);
-            MusMan.SetSpeed(initMusSpeed);
+            MusMan.SetSpeed(initMusSpeed + (10 - health) / 10f);
         }
 
         public void SpawnProjectiles(int count = 1) {
@@ -157,36 +86,26 @@ namespace NULL.Content
                 projectile.gameObject.SetActive(true);
             }
         }
-
         public void SpawnInitialProjectiles(int divider = 3) {
             for (int i = 0; i < (AllCellsInHall.Count / divider); i++)
-            {
                 SpawnProjectiles();
-            }
         }
-
         public void RemoveAllProjectiles() {
             try
             {
                 foreach (var projectile in FindObjectsOfType<NullProjectile>())
-                {
                     Destroy(projectile.gameObject);
-                }
 
                 PlayerHasProjectile = false;
             }
             catch { }
         }
 
-        public void NullHit(NullNPC target, int val, bool pause = true) {
-            if (!bossHealths.ContainsKey(target)) return;
+        public void NullHit(int val, bool pause = true) {
+            health -= val;
 
-            bossHealths[target] -= val;
-            int currentTotalHealth = TotalHealth;
-
-            if (!fightStarted)
+            if (!BossActive)
             {
-                fightStarted = true;
                 BossActive = true;
                 RemoveAllProjectiles();
 
@@ -202,50 +121,31 @@ namespace NULL.Content
                 currentPlayerSpeed += 0.575f;
             }
 
-            foreach (var npc in ActiveBosses)
+            if (nullNpc != null)
             {
-                if (npc == null) continue;
-                npc.baseSpeed = currentBossSpeed;
-                npc.ReflectionSetVariable("baseSpeed", currentBossSpeed);
+                nullNpc.baseSpeed = currentBossSpeed;
+                nullNpc.ReflectionSetVariable("baseSpeed", currentBossSpeed);
             }
 
-            if (currentTotalHealth >= 0)
+            if (health >= 0)
             {
-                float progress = 1f - ((float)currentTotalHealth / totalMaxHealth);
-                MusMan.SetSpeed(initMusSpeed + progress);
+                MusMan.SetSpeed(initMusSpeed + (10 - health) * 0.1f);
+                if (health > 1 && health < 10) MusMan.HangMidi(true, true);
+                if (health < 10) SpawnProjectiles(Mathf.FloorToInt((health - 1) / 3));
 
-                if (bossHealths[target] > 1 && bossHealths[target] < 10)
-                {
-                    MusMan.HangMidi(true, true);
-                }
-
-                if (currentTotalHealth < 10)
-                {
-                    SpawnProjectiles(Mathf.FloorToInt((currentTotalHealth - 1) / 3));
-                }
-
-                if (currentTotalHealth >= 10)
-                {
-                    SpawnProjectiles(Mathf.FloorToInt((currentTotalHealth - 1) / (IsTimes ? 1.25f : 2.5f)));
-                }
+                if (health >= 10)
+                    SpawnProjectiles(Mathf.FloorToInt((health - 1) / (IsTimes ? 1.25f : 2.5f)));
             }
 
-            if (bossHealths[target] <= 0)
-            {
-                StartCoroutine(target.Rage());
-                target.Despawn();
-                bossHealths.Remove(target);
-            }
-            else if (bossHealths[target] == 1)
+            if (health == 1)
             {
                 MusMan.HangMidi(true, true);
-                StartCoroutine(target.Rage());
+                StartCoroutine(nullNpc.Rage());
             }
 
-            if (bossHealths.Count == 0)
+            if (health <= 0)
             {
                 BossActive = false;
-                fightStarted = false;
                 Singleton<BaseGameManager>.Instance.LoadNextLevel();
                 ClearEffects();
                 ec.StopAllCoroutines();

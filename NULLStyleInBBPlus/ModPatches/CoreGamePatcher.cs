@@ -4,9 +4,7 @@ using HarmonyLib;
 using MTM101BaldAPI.Reflection;
 using NULL.Content;
 using NULL.Manager;
-using NULL.NPCs;
 using System.Collections;
-using System.Linq;
 using UnityEngine;
 using static DevTools.ExtraVariables;
 
@@ -21,9 +19,10 @@ namespace NULL.ModPatches
         static void ReturnToMenu_Fix() {
             ModManager.NullStyle = false;
             Reset();
-            if (BossManager.Instance != null) BossManager.Instance.RemoveAllProjectiles();
+            BossManager.Instance?.RemoveAllProjectiles();
             Singleton<MusicManager>.Instance.KillMidi();
-            try {
+            try
+            {
                 Object.Destroy(Singleton<CoreGameManager>.Instance.GetHud(0).BaldiTv.gameObject.GetComponent<CustomComponents.NullTV>());
             }
             catch { }
@@ -31,18 +30,16 @@ namespace NULL.ModPatches
 
         [HarmonyPatch("Quit")]
         [HarmonyPrefix]
-        static bool TryQuit(CoreGameManager __instance) {
-            if (!ModManager.NullStyle) return true;
-            if (Singleton<BaseGameManager>.Instance.FoundNotebooks >= 2) return true;
-            var nullNpc = Object.FindObjectOfType<NullNPC>();
-            if (nullNpc != null && !nullNpc.Hidden) {
-                if (__instance.pauseScreen != null)
-                    __instance.pauseScreen.SetActive(false);
-
-                __instance.disablePause = true;
+        static bool TryQuit() {
+            var nullNpc = NullPlusManager.instance.nullNpc;
+            if (nullNpc != null && !nullNpc.Hidden && !nullNpc.IsPaused()
+                && Singleton<BaseGameManager>.Instance.FoundNotebooks >= 2)
+            {
+                Core.Pause(false);
                 nullNpc.transform.position = pm.transform.position + pm.transform.forward * 2f;
                 nullNpc.transform.LookAt(pm.transform);
-                __instance.StartCoroutine(CrashSequence(__instance, pm.transform, nullNpc, true));
+
+                Singleton<CoreGameManager>.Instance.StartCoroutine(CrashSequence(Singleton<CoreGameManager>.Instance, pm.transform, nullNpc, true));
                 return false;
             }
 
@@ -63,13 +60,8 @@ namespace NULL.ModPatches
             manager.audMan.volumeModifier = 0.6f;
             Singleton<InputManager>.Instance.Rumble(1f, 2f);
 
-            if (fatalError)
-            {
-                try
-                {
-                    if (ExtraVariables.canvas != null) Object.Destroy(ExtraVariables.canvas.gameObject);
-                }
-                catch { }
+            if (fatalError) {
+                try { Object.Destroy(canvas.gameObject); } catch { }
             }
 
             HideHuds(true);
@@ -77,7 +69,6 @@ namespace NULL.ModPatches
 
             float time = 0f;
             float glitchRate = 0.5f;
-
             Shader.SetGlobalInt("_ColorGlitching", 1);
 
             if (Singleton<PlayerFileManager>.Instance.reduceFlashing)
@@ -85,7 +76,8 @@ namespace NULL.ModPatches
 
             yield return null;
 
-            while (time <= 5f) {
+            while (time <= 5f)
+            {
                 time += Time.unscaledDeltaTime * 0.5f;
                 Shader.SetGlobalFloat("_VertexGlitchSeed", Random.Range(0f, 1000f));
                 Shader.SetGlobalFloat("_TileVertexGlitchSeed", Random.Range(0f, 1000f));
@@ -125,8 +117,7 @@ namespace NULL.ModPatches
                 int extraLives = (int)manager.ReflectionGetVariable("extraLives");
                 int attempts = (int)manager.ReflectionGetVariable("attempts");
 
-                if (lives < 1 && extraLives < 1)
-                {
+                if (lives < 1 && extraLives < 1) {
                     Singleton<GlobalCam>.Instance.SetListener(true);
                     manager.ReturnToMenu();
                 }
@@ -150,8 +141,7 @@ namespace NULL.ModPatches
         [HarmonyPatch("EndGame")]
         [HarmonyPrefix]
         private static bool EndGame_Prefix(CoreGameManager __instance, Transform player, Baldi baldi) {
-            if (baldi.gameObject.name.Contains("NULL") || baldi.gameObject.name.Contains("GLITCH"))
-            {
+            if (baldi.gameObject.name.Contains("NULL")) {
                 bool isFatal = Singleton<BaseGameManager>.Instance.FoundNotebooks >= 2;
                 __instance.StartCoroutine(CrashSequence(__instance, player, baldi, isFatal));
                 return false;

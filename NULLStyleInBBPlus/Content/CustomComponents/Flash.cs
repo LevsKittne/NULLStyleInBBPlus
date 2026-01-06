@@ -3,10 +3,8 @@ using NULL.Content;
 using System.Collections;
 using UnityEngine;
 
-namespace NULL.CustomComponents
-{
-    public class Flash : MonoBehaviour
-    {
+namespace NULL.CustomComponents {
+    public class Flash : MonoBehaviour {
         public void SetFlash(float time) => StartCoroutine(Flashing(time));
         IEnumerator Flashing(float time) {
             var renderer = gameObject.GetComponentInChildren<SpriteRenderer>();
@@ -29,7 +27,7 @@ namespace NULL.CustomComponents
             renderer.SetPropertyBlock(spriteProperties);
 
             if (BossManager.Instance.BossActive) {
-                if (BossManager.Instance.TotalHealth > 1 && BossManager.Instance.TotalHealth < 10)
+                if (BossManager.Instance.health > 1 && BossManager.Instance.health < 10)
                     Singleton<MusicManager>.Instance.HangMidi(false, false);
             }
         }

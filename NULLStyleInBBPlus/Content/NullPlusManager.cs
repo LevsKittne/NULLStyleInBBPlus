@@ -8,10 +8,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using static DevTools.ExtraVariables;
 
-namespace NULL.Content
-{
-    public class NullPlusManager : MainGameManager
-    {
+namespace NULL.Content {
+    public class NullPlusManager : MainGameManager {
         public static NullPlusManager instance;
         [SerializeField] public NullNPC nullNpc;
         float glitchVal = 0f;
@@ -22,6 +20,8 @@ namespace NULL.Content
             BasePlugin.RePatch();
             Reset();
             instance = this;
+            if (BossManager.Instance == null)
+                new GameObject("BossManager").AddComponent<BossManager>();
 
             base.Initialize();
             ec.SpawnNPCs();
@@ -100,13 +100,9 @@ namespace NULL.Content
                 }
             }
 
-            if (list.Count == 1)
+            if ((int)this.ReflectionGetVariable("elevatorsClosed") >= 3 && (int)this.ReflectionGetVariable("elevatorsToClose") == 0)
             {
-                var allNpcs = FindObjectsOfType<NullNPC>();
-                foreach (var npc in allNpcs)
-                {
-                    npc.behaviorStateMachine.ChangeState(new NullNPC_Preboss(npc, list[0]));
-                }
+                nullNpc.behaviorStateMachine.ChangeState(new NullNPC_Preboss(nullNpc, list[Random.Range(0, list.Count)]));
                 freezeElevators = true;
             }
         }

@@ -67,8 +67,7 @@ namespace NULL.NPCs
                 }
             };
 
-            if (NullPlusManager.instance != null)
-                NullPlusManager.instance.nullNpc = this;
+            NullPlusManager.instance.nullNpc = this;
         }
 
         public override void Initialize() {
@@ -114,8 +113,7 @@ namespace NULL.NPCs
             GetAngry(IsTimes ? ANGER_PER_HIT_TIMES : ANGER_PER_HIT * val);
             AudMan.FlushQueue(true);
             AudMan.QueueAudio(hitSound);
-
-            if (BossManager.Instance == null || !BossManager.Instance.BossActive)
+            if (!BossManager.Instance.BossActive)
                 AudMan.QueueAudio(isGlitch ? "GlitchBossStart" : "Null_PreBoss_Start");
         }
 
@@ -132,10 +130,7 @@ namespace NULL.NPCs
 
         protected override void VirtualUpdate() {
             base.VirtualUpdate();
-            bool dark = false;
-            try { dark = BasePlugin.darkAtmosphere.Value; } catch { }
-
-            FlickerLights(!Hidden && !dark);
+            FlickerLights(!Hidden && !BasePlugin.darkAtmosphere.Value);
         }
 
         public new float Delay => slapCurve.Evaluate((float)this.ReflectionGetVariable("anger") + (float)this.ReflectionGetVariable("extraAnger")) + 0.4f;
@@ -194,7 +189,7 @@ namespace NULL.NPCs
             }
 
             public void SpeechChecker(string phrase, float chance) {
-                if (BossManager.Instance != null && (BossManager.Instance.BossActive || BossManager.Instance.bossTransitionWaiting)) return;
+                if (BossManager.Instance.BossActive || BossManager.Instance.bossTransitionWaiting) return;
 
                 List<string> genericPhrases = new List<string> { "Bored", "Scary", "Stop", "Wherever" };
                 var audMan = nullNpc.GetComponent<AudioManager>();
@@ -332,6 +327,7 @@ namespace NULL.NPCs
                 if (flag)
                 {
                     PlayerManager component = other.GetComponent<PlayerManager>();
+                    ItemManager itm = component.itm;
                     if (!component.invincible)
                     {
                         nullNpc.Speaker.SpeechChecker("Haha", 0.04f);
@@ -416,19 +412,8 @@ namespace NULL.NPCs
         public const int MIN_DISTANCE_TO_BEGIN_RUSHING = 15;
 
         public NullNPC_Preboss(NullNPC nullNpc, Elevator finalElevator) : base(nullNpc, nullNpc) {
+            elevatorPos = finalElevator.transform.position + finalElevator.Door.direction.ToVector3() * 10f;
             ec = nullNpc.ec;
-
-            Vector3 potentialPos = finalElevator.Door.transform.position + finalElevator.Door.direction.ToVector3() * 15f;
-            Cell targetCell = ec.CellFromPosition(potentialPos);
-
-            if (targetCell == null || targetCell.Null)
-            {
-                elevatorPos = finalElevator.Door.transform.position;
-            }
-            else
-            {
-                elevatorPos = potentialPos;
-            }
         }
 
         public override void Enter() {
@@ -482,23 +467,13 @@ namespace NULL.NPCs
             if ((float)nullNpc.ReflectionGetVariable("anger") < 169f)
                 nullNpc.GetAngry(169f);
 
-            nullNpc.behaviorStateMachine.ChangeNavigationState(new NavigationState_TargetPosition(nullNpc, 0, finalElevatorPos));
+            nullNpc.behaviorStateMachine.ChangeNavigationState(new NavigationState_TargetPosition(nullNpc, 0, finalElevatorPos + new Vector3(0f, 5f, 0f)));
             nullNpc.Hidden = false;
         }
 
         public override void Update() {
             base.Update();
-            if (Vector3.Distance(nullNpc.transform.position, finalElevatorPos) < 22f && BossManager.Instance != null)
-            {
-                if (!BossManager.Instance.BossActive && !BossManager.Instance.bossTransitionWaiting)
-                {
-                    BossManager.Instance.StartBossIntro();
-                }
-            }
-        }
-
-        public override void DestinationEmpty() {
-            if (BossManager.Instance != null && !BossManager.Instance.BossActive && !BossManager.Instance.bossTransitionWaiting)
+            if (Vector3.Distance(nullNpc.transform.position, finalElevatorPos) < 22f)
             {
                 BossManager.Instance.StartBossIntro();
             }
@@ -506,6 +481,7 @@ namespace NULL.NPCs
 
         public override void OnStateTriggerStay(Collider other, bool validCollision) { }
         public override void PlayerInSight(PlayerManager player) { }
+        public override void DestinationEmpty() { }
         public override void OnStateTriggerEnter(Collider other, bool validCollision) { }
     }
 }

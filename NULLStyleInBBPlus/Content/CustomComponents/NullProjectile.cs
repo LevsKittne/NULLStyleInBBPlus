@@ -5,10 +5,9 @@ using PixelInternalAPI.Extensions;
 using UnityEngine;
 using s = UnityEngine.SerializeField;
 
-namespace NULL.CustomComponents
-{
-    public class NullProjectile : MonoBehaviour
-    {
+namespace NULL.CustomComponents {
+
+    public class NullProjectile : MonoBehaviour {
         [s] GameObject visibleObject;
         [s] int initLayer;
         [s] public Vector3 spawnPoint;
@@ -16,7 +15,6 @@ namespace NULL.CustomComponents
         [s] float speed = 69f, life = 10f, val;
         BossManager Bm => BossManager.Instance;
         [s] Transform targetTransform;
-
         void Start() {
             if (name.Contains("Banana")) transform.localPosition += Vector3.up * 2.7f;
             spawnPoint = transform.position;
@@ -26,42 +24,31 @@ namespace NULL.CustomComponents
             initLayer = visibleObject.layer;
             targetTransform = Singleton<CoreGameManager>.Instance.GetCamera(0).transform;
         }
-
         void Throw() {
             thrown = true;
             transform.rotation = targetTransform.rotation;
             held = false;
             Bm.PlayerHasProjectile = false;
         }
-
         void OnTriggerEnter(Collider other) {
-            if (thrown && !hit)
-            {
-                if (other.name.Contains("NULL") && !Bm.bossTransitionWaiting)
-                {
+            if (thrown && !hit) {
+                if (other.name.Contains("NULL") && !Bm.bossTransitionWaiting) {
                     hit = true;
-                    NullNPC npc = other.GetComponent<NullNPC>();
-                    if (npc != null)
-                    {
-                        npc.Hit(1);
-                        Bm.NullHit(npc, 1);
-                    }
+                    other.GetComponent<NullNPC>().Hit(1);
+                    Bm.NullHit(1);
                     Destroy(gameObject);
                 }
             }
-            if (!thrown && other.CompareTag("Player") && !Bm.PlayerHasProjectile)
-            {
+            if (!thrown && other.CompareTag("Player") && !Bm.PlayerHasProjectile) {
                 held = true;
                 Bm.PlayerHasProjectile = true;
             }
         }
-
         void Update() {
             if (Singleton<CoreGameManager>.Instance.Paused || visibleObject == null || Time.timeScale == 0) return;
             val += Time.deltaTime;
 
-            if (held)
-            {
+            if (held) {
                 transform.position = targetTransform.transform.position + targetTransform.transform.forward * 5.5f - Vector3.up * (name.Contains("Banana") ? 2.25f : 4.25f);
                 visibleObject.transform.localPosition += new Vector3(0f, Mathf.Sin(val * 5f) / 120, 0f);
                 transform.localEulerAngles = targetTransform.localEulerAngles + (name.Contains("Chair") ? 90 : 0) * Vector3.up;
@@ -70,21 +57,18 @@ namespace NULL.CustomComponents
                 if (Singleton<InputManager>.Instance.GetDigitalInput("Interact", true))
                     Throw();
             }
-            else
-            {
+            else {
                 visibleObject.transform.localPosition += new Vector3(0f, Mathf.Sin(val * 5f) / 145, 0f);
                 visibleObject.layer = initLayer;
             }
 
-            if (thrown)
-            {
+            if (thrown) {
                 transform.position += transform.forward * speed * Time.deltaTime * ExtraVariables.ec.EnvironmentTimeScale;
                 life -= Time.deltaTime;
                 if (life <= 0f)
                     Respawn();
             }
         }
-
         void Respawn() {
             thrown = false;
             held = false;

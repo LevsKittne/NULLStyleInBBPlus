@@ -14,7 +14,7 @@ namespace NULL.ModPatches
         [HarmonyPatch("MidiEvent")]
         static void Postfix(MusicManager __instance, List<MPTKEvent> midiEvents) {
             var b = BossManager.Instance;
-            if (!b || (b && b.TotalHealth <= 0)) return;
+            if (!b || (b && b.health <= 0)) return;
 
             for (int i = 0; i < midiEvents.Count; i++)
             {

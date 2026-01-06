@@ -5,6 +5,7 @@ using DevTools.Patches;
 using MTM101BaldAPI;
 using MTM101BaldAPI.AssetTools;
 using MTM101BaldAPI.Reflection;
+using MTM101BaldAPI.ObjectCreation;
 using MTM101BaldAPI.Registers;
 using NULL.Content;
 using NULL.CustomComponents;
@@ -20,6 +21,8 @@ using static MTM101BaldAPI.AssetTools.AssetLoader;
 using static NULL.BasePlugin;
 using static PixelInternalAPI.Extensions.GenericExtensions;
 using static UnityEngine.Object;
+using DevTools.DevAPI.Extensions;
+using System.Threading;
 
 namespace NULL.Manager
 {
@@ -31,11 +34,9 @@ namespace NULL.Manager
         static bool _glitchStyle;
         static bool _doubleTrouble;
         public static AssetManager m = new AssetManager();
-        public static bool NullStyle
-        {
+        public static bool NullStyle {
             get => _nullStyle;
-            set
-            {
+            set {
                 _nullStyle = value;
 
                 if (!_glitchStyle)
@@ -45,11 +46,9 @@ namespace NULL.Manager
                     GlitchStyle = false;
             }
         }
-        public static bool GlitchStyle
-        {
+        public static bool GlitchStyle {
             get => _nullStyle && _glitchStyle;
-            set
-            {
+            set {
                 _glitchStyle = value;
                 if (!NullStyle && value)
                     NullStyle = value;
@@ -57,16 +56,13 @@ namespace NULL.Manager
                 RePatch();
             }
         }
-        public static bool DoubleTrouble
-        {
-            get => _doubleTrouble;
-            set
-            {
-                _doubleTrouble = value;
-                if (value)
-                {
-                    _nullStyle = true;
-                }
+        public static bool DoubleTrouble { //glitch style for test in use
+            get => _nullStyle && _glitchStyle;
+            set {
+                _glitchStyle = value;
+                if (!NullStyle && value)
+                    NullStyle = value;
+
                 RePatch();
             }
         }
@@ -83,8 +79,7 @@ namespace NULL.Manager
             TryRunMethod(CreateNPCs);
             yield return "Loading captions...";
             TryRunMethod(LoadCaptions);
-            if (e)
-            {
+            if (e) {
                 yield return "Registering NULL & GLITCH for Level Studio...";
                 EditorCompat.Register();
             }
@@ -148,9 +143,6 @@ namespace NULL.Manager
             GameObject obj = new GameObject();
             obj.SetActive(false);
             var mainGameManager = obj.AddComponent<NullPlusManager>();
-
-            obj.AddComponent<BossManager>();
-
             GameObject ambient = Instantiate(FindResourceObject<MainGameManager>().transform.Find("Ambience").gameObject, mainGameManager.transform);
             mainGameManager.ReflectionSetVariable("elevatorScreenPre", FindResourceObject<ElevatorScreen>());
             mainGameManager.ReflectionSetVariable("pitstop", FindResourceObject<MainGameManager>().ReflectionGetVariable("pitstop"));
