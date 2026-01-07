@@ -3,12 +3,10 @@ using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 
-namespace NULL.ModPatches
-{
+namespace NULL.ModPatches {
     [ConditionalPatchNULL]
     [HarmonyPatch]
-    internal class GameManagerPatcher
-    {
+    internal class GameManagerPatcher {
         [HarmonyPatch(typeof(MainGameManager), "CreateHappyBaldi")]
         [HarmonyPrefix]
         static bool CreateHappyBaldi() => false;

@@ -6,7 +6,6 @@ using UnityEngine;
 using s = UnityEngine.SerializeField;
 
 namespace NULL.CustomComponents {
-
     public class NullProjectile : MonoBehaviour {
         [s] GameObject visibleObject;
         [s] int initLayer;

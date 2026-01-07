@@ -3,18 +3,14 @@ using System.Linq;
 using UnityEngine;
 using static DevTools.ExtraVariables;
 
-namespace DevTools.Extensions
-{
-    public static class CellsExtensions
-    {
+namespace DevTools.Extensions {
+    public static class CellsExtensions {
         public static Dictionary<Direction, List<Cell>> DirectionWithMaxFreeCells(this Cell fromCell) {
             var targetPair = new KeyValuePair<Direction, List<Cell>>();
             int maxCount = int.MinValue;
 
-            foreach (var pair in fromCell.GetCellsInAllDirections())
-            {
-                if (pair.Value.Count > maxCount)
-                {
+            foreach (var pair in fromCell.GetCellsInAllDirections()) {
+                if (pair.Value.Count > maxCount) {
                     maxCount = pair.Value.Count;
                     targetPair = pair;
                 }
@@ -28,8 +24,7 @@ namespace DevTools.Extensions
             var cornersInHallway = (from x in ec.mainHall.GetTilesOfShape(shape, true) select x).ToList();
 
             int max = int.MinValue;
-            foreach (var a in cornersInHallway)
-            {
+            foreach (var a in cornersInHallway) {
                 int count = a.DirectionWithMaxFreeCells().ElementAt(0).Value.Count;
                 if (count > max) max = count;
             }
@@ -41,8 +36,7 @@ namespace DevTools.Extensions
             var nextCell = ec.CellFromPosition(startCell.position + dir.ToIntVector2());
             var cellsInDir = new List<Cell>();
 
-            while (nextCell != null && !nextCell.HasWallInDirection(dir))
-            {
+            while (nextCell != null && !nextCell.HasWallInDirection(dir)) {
                 cellsInDir.Add(nextCell);
                 nextCell = ec.CellFromPosition(nextCell.position + dir.ToIntVector2());
             }
@@ -54,8 +48,7 @@ namespace DevTools.Extensions
         public static Dictionary<Direction, List<Cell>> GetCellsInAllDirections(this Cell startCell) {
             Dictionary<Direction, List<Cell>> result = new Dictionary<Direction, List<Cell>>();
 
-            foreach (var direction in startCell.AllOpenNavDirections)
-            {
+            foreach (var direction in startCell.AllOpenNavDirections) {
                 result.Add(direction, startCell.GetCellsInDirection(direction));
             }
 

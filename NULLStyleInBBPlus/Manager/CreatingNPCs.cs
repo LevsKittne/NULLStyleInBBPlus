@@ -3,7 +3,6 @@ using MTM101BaldAPI.ObjectCreation;
 using NULL.NPCs;
 
 namespace NULL.Manager {
-
     internal static partial class ModManager {
         static void CreateNPCs() {
             NPC npc;

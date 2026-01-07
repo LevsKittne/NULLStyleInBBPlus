@@ -5,10 +5,8 @@ using UnityEngine;
 using MTM101BaldAPI.Reflection;
 using static NULL.Manager.ModManager;
 
-namespace DevTools.Extensions
-{
-    public static class AudioManagerExtensions
-    {
+namespace DevTools.Extensions {
+    public static class AudioManagerExtensions {
         static List<fluid_voice> heldVoices = new List<fluid_voice>();
 
         public static void Play(this AudioSource source, string name, bool loop = false) {
@@ -40,29 +38,22 @@ namespace DevTools.Extensions
         public static void HangMidi(this MusicManager mm, bool stop, bool keepDrums = false) {
             var voices = (List<fluid_voice>)mm.MidiPlayer.ReflectionGetVariable("ActiveVoices");
 
-            foreach (fluid_voice fluid_voice in heldVoices)
-            {
-                if (fluid_voice != null)
-                {
+            foreach (fluid_voice fluid_voice in heldVoices) {
+                if (fluid_voice != null) {
                     fluid_voice.DurationTick = 0L;
                 }
             }
             heldVoices.Clear();
-            for (int i = 0; i < 16; i++)
-            {
-                if (i != 9)
-                {
+            for (int i = 0; i < 16; i++) {
+                if (i != 9) {
                     mm.MidiPlayer.MPTK_ChannelEnableSet(i, !stop);
                 }
-                else
-                {
+                else {
                     mm.MidiPlayer.MPTK_ChannelEnableSet(i, !stop || keepDrums);
                 }
             }
-            if (stop && voices != null)
-            {
-                foreach (fluid_voice fluid_voice2 in voices)
-                {
+            if (stop && voices != null) {
+                foreach (fluid_voice fluid_voice2 in voices) {
                     fluid_voice2.DurationTick = -1L;
                     heldVoices.Add(fluid_voice2);
                 }

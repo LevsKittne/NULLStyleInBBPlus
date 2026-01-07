@@ -10,11 +10,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace DevTools.Extensions
-{
-
-    public static class GenericExtensions
-    {
+namespace DevTools.Extensions {
+    public static class GenericExtensions {
         public static Color SetAlpha(this Image img, float a) {
             var c = img.color;
             c.a = a;
@@ -30,10 +27,8 @@ namespace DevTools.Extensions
         public static string[] GetAllFiles(string directory) => new List<string>(GetFiles(directory)).ToArray();
 
         public static IEnumerable<T> RemoveAllAndReturn<T>(this IEnumerable<T> values, Predicate<T> predicate) {
-            using (var enumerator = values.GetEnumerator())
-            {
-                while (enumerator.MoveNext())
-                {
+            using (var enumerator = values.GetEnumerator()) {
+                while (enumerator.MoveNext()) {
                     if (!predicate(enumerator.Current))
                         yield return enumerator.Current;
                 }
@@ -41,10 +36,8 @@ namespace DevTools.Extensions
         }
 
         public static IEnumerable<T> ReplaceAllAndReturn<T>(this IEnumerable<T> values, Predicate<T> predicate, T replacement) {
-            using (var enumerator = values.GetEnumerator())
-            {
-                while (enumerator.MoveNext())
-                {
+            using (var enumerator = values.GetEnumerator()) {
+                while (enumerator.MoveNext()) {
                     if (predicate(enumerator.Current))
                         yield return replacement;
 
@@ -55,10 +48,8 @@ namespace DevTools.Extensions
 
         public static int IndexAt<T>(this IEnumerable<T> values, T val) {
             int index = 0;
-            using (IEnumerator<T> enumerator = values.GetEnumerator())
-            {
-                while (enumerator.MoveNext())
-                {
+            using (IEnumerator<T> enumerator = values.GetEnumerator()) {
+                while (enumerator.MoveNext()) {
                     if (ReferenceEquals(enumerator.Current, val) || Equals(val, enumerator.Current))
                         return index;
 
@@ -71,10 +62,8 @@ namespace DevTools.Extensions
         public static int LastIndexAt<T>(this IEnumerable<T> values, T val) {
             int curIndex = -1;
             int index = 0;
-            using (IEnumerator<T> enumerator = values.GetEnumerator())
-            {
-                while (enumerator.MoveNext())
-                {
+            using (IEnumerator<T> enumerator = values.GetEnumerator()) {
+                while (enumerator.MoveNext()) {
                     if (ReferenceEquals(enumerator.Current, val) || Equals(val, enumerator.Current))
                         curIndex = index;
 
@@ -86,10 +75,8 @@ namespace DevTools.Extensions
 
         public static int IndexAt<T>(this IEnumerable<T> values, Predicate<T> func) {
             int index = 0;
-            using (IEnumerator<T> enumerator = values.GetEnumerator())
-            {
-                while (enumerator.MoveNext())
-                {
+            using (IEnumerator<T> enumerator = values.GetEnumerator()) {
+                while (enumerator.MoveNext()) {
                     if (func(enumerator.Current))
                         return index;
 
@@ -102,10 +89,8 @@ namespace DevTools.Extensions
         public static int LastIndexAt<T>(this IEnumerable<T> values, Predicate<T> func) {
             int curIndex = -1;
             int index = 0;
-            using (IEnumerator<T> enumerator = values.GetEnumerator())
-            {
-                while (enumerator.MoveNext())
-                {
+            using (IEnumerator<T> enumerator = values.GetEnumerator()) {
+                while (enumerator.MoveNext()) {
                     if (func(enumerator.Current))
                         curIndex = index;
 
@@ -132,10 +117,8 @@ namespace DevTools.Extensions
         }
 
         public static IEnumerable<T> DoAndReturn<T>(this IEnumerable<T> values, Func<T, T> func) {
-            using (var enumerator = values.GetEnumerator())
-            {
-                while (enumerator.MoveNext())
-                {
+            using (var enumerator = values.GetEnumerator()) {
+                while (enumerator.MoveNext()) {
                     yield return func(enumerator.Current);
                 }
             }
@@ -145,10 +128,8 @@ namespace DevTools.Extensions
 
         public static IEnumerable<T> RemoveInAt<T>(this IEnumerable<T> values, int index) {
             int numeration = 0;
-            using (var enumerator = values.GetEnumerator())
-            {
-                while (enumerator.MoveNext())
-                {
+            using (var enumerator = values.GetEnumerator()) {
+                while (enumerator.MoveNext()) {
                     if (numeration++ != index)
                         yield return enumerator.Current;
                 }
@@ -156,16 +137,14 @@ namespace DevTools.Extensions
         }
 
         public static T Next<T>(this T src) where T : struct {
-            if (!typeof(T).IsEnum)
-            {
+            if (!typeof(T).IsEnum) {
                 throw new ArgumentException(string.Format("Argumnent {0} is not an Enum", typeof(T).FullName));
             }
 
             T[] array = (T[])Enum.GetValues(src.GetType());
             int num = Array.IndexOf<T>(array, src) + 1;
 
-            if (array.Length != num)
-            {
+            if (array.Length != num) {
                 return array[num];
             }
 
@@ -210,8 +189,7 @@ namespace DevTools.Extensions
         }
 #pragma warning restore
         public static bool Contains<T>(this IList<T> list, Predicate<T> predicate) {
-            foreach (var b in list)
-            {
+            foreach (var b in list) {
                 if (predicate(b))
                     return true;
             }
@@ -220,8 +198,7 @@ namespace DevTools.Extensions
 
         public static void RemoveChildsContainingNames(this Transform t, IList<string> names) {
             var e = t.transform.GetEnumerator();
-            while (e.MoveNext())
-            {
+            while (e.MoveNext()) {
                 foreach (var name in names)
                     if (((Transform)e.Current).ToString().Contains(name))
                         UnityEngine.Object.Destroy(((Transform)e.Current).gameObject);
@@ -250,8 +227,7 @@ namespace DevTools.Extensions
             int count = 0;
             int index = 0;
 
-            while ((index = input.IndexOf(substring, index)) != -1)
-            {
+            while ((index = input.IndexOf(substring, index)) != -1) {
                 count++;
                 index += substring.Length;
             }

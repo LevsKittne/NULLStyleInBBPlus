@@ -8,15 +8,13 @@ using MTM101BaldAPI.Registers;
 using NULL.CustomComponents;
 using System.IO;
 
-namespace NULL
-{
+namespace NULL {
     [BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("pixelguy.pixelmodding.baldiplus.pixelinternalapi", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("pixelguy.pixelmodding.baldiplus.moddedmodesapi", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("pixelguy.pixelmodding.baldiplus.bbextracontent", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(ModInfo.ID, ModInfo.NAME, ModInfo.VERSION)]
-    public class BasePlugin : BaseUnityPlugin
-    {
+    public class BasePlugin : BaseUnityPlugin {
         internal static Harmony harmony = new Harmony(ModInfo.ID);
         public static string ModPath;
 
@@ -53,8 +51,7 @@ namespace NULL
         }
     }
 
-    static class ModInfo
-    {
+    static class ModInfo {
         public const string ID = "levs_kittne.baldiplus.null";
         public const string NAME = "NULL";
         public const string VERSION = "1.2.5";

@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace NULL.CustomComponents {
-
     [RequireComponent(typeof(BaldiTV))]
     public class NullTV : MonoBehaviour {
         [SerializeField] Sprite balSpr;

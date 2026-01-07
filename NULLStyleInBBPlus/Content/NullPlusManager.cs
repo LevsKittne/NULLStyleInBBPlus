@@ -27,8 +27,7 @@ namespace NULL.Content {
             ec.SpawnNPCs();
             ec.StartEventTimers();
 
-            if (BasePlugin.darkAtmosphere.Value)
-            {
+            if (BasePlugin.darkAtmosphere.Value) {
                 foreach (var cell in ec.AllCells()) cell.SetLight(false);
                 Shader.SetGlobalColor("_SkyboxColor", Color.black);
             }
@@ -53,14 +52,12 @@ namespace NULL.Content {
             base.VirtualUpdate();
             if (Bm == null || ec == null || nullNpc == null) return;
 
-            if (Bm.BossActive)
-            {
+            if (Bm.BossActive) {
                 if (!Singleton<MusicManager>.Instance.MidiPlaying && Bm.holdBeat && !Bm.bossTransitionWaiting && !Core.Paused)
                     Bm.StartBossFight();
 
                 var player = Singleton<CoreGameManager>.Instance.GetPlayer(0);
-                if (player != null)
-                {
+                if (player != null) {
                     nullNpc.Hear(player.gameObject, player.transform.position, 127);
 
                     Singleton<MusicManager>.Instance.MidiPlayer.MPTK_ChannelVolumeSet(9, Mathf.Clamp(1f - (Vector3.Distance(nullNpc.transform.position, player.transform.position) - 75f) / 150f, 0f, 1f));
@@ -91,17 +88,14 @@ namespace NULL.Content {
 
             var list = new List<Elevator>();
             list.AddRange(ec.elevators);
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (!list[i].IsOpen)
-                {
+            for (int i = 0; i < list.Count; i++) {
+                if (!list[i].IsOpen) {
                     list.RemoveAt(i);
                     i--;
                 }
             }
 
-            if ((int)this.ReflectionGetVariable("elevatorsClosed") >= 3 && (int)this.ReflectionGetVariable("elevatorsToClose") == 0)
-            {
+            if ((int)this.ReflectionGetVariable("elevatorsClosed") >= 3 && (int)this.ReflectionGetVariable("elevatorsToClose") == 0) {
                 nullNpc.behaviorStateMachine.ChangeState(new NullNPC_Preboss(nullNpc, list[Random.Range(0, list.Count)]));
                 freezeElevators = true;
             }
@@ -115,8 +109,7 @@ namespace NULL.Content {
         void MidiEvent(MPTKEvent midiEvent) {
             if (Bm == null) return;
 
-            if (Bm.BossActive && !Bm.holdBeat && midiEvent.Command == MPTKCommand.MetaEvent && midiEvent.Meta == MPTKMeta.TextEvent)
-            {
+            if (Bm.BossActive && !Bm.holdBeat && midiEvent.Command == MPTKCommand.MetaEvent && midiEvent.Meta == MPTKMeta.TextEvent) {
                 if (glitchVal <= 0f) StartCoroutine(UnGlitch());
                 glitchVal = 1f;
                 Shader.SetGlobalFloat("_VertexGlitchSeed", Random.Range(0f, 1000f));
@@ -128,8 +121,7 @@ namespace NULL.Content {
 
         IEnumerator UnGlitch() {
             yield return null;
-            while (glitchVal > 0f)
-            {
+            while (glitchVal > 0f) {
                 glitchVal -= Time.deltaTime * 4f;
                 Shader.SetGlobalFloat("_VertexGlitchIntensity", glitchVal * 3f);
                 Shader.SetGlobalFloat("_TileVertexGlitchIntensity", glitchVal * 3f);
@@ -143,37 +135,32 @@ namespace NULL.Content {
 
         public static IEnumerator AngerGlitch(float wait) {
             float glitchRate = 0.5f;
-            while (wait > 0f)
-            {
+            while (wait > 0f) {
                 wait -= Time.deltaTime;
                 yield return null;
             }
             wait = 0f;
             Shader.SetGlobalInt("_ColorGlitching", 1);
             Shader.SetGlobalInt("_SpriteColorGlitching", 1);
-            while (wait < 3f)
-            {
+            while (wait < 3f) {
                 wait += Time.deltaTime / (ModManager.GlitchStyle ? 2 : 1);
                 Shader.SetGlobalFloat("_VertexGlitchSeed", Random.Range(0f, 1000f));
                 Shader.SetGlobalFloat("_TileVertexGlitchSeed", Random.Range(0f, 1000f));
                 Singleton<InputManager>.Instance.Rumble(wait / 6f, 0.05f);
-                if (!Singleton<PlayerFileManager>.Instance.reduceFlashing)
-                {
+                if (!Singleton<PlayerFileManager>.Instance.reduceFlashing) {
                     glitchRate -= Time.unscaledDeltaTime;
                     Shader.SetGlobalFloat("_VertexGlitchIntensity", Mathf.Pow(wait, 2f));
                     Shader.SetGlobalFloat("_TileVertexGlitchIntensity", Mathf.Pow(wait, 2f));
                     Shader.SetGlobalFloat("_ColorGlitchPercent", wait * 0.05f);
                     Shader.SetGlobalFloat("_SpriteColorGlitchPercent", wait * 0.05f);
-                    if (glitchRate <= 0f)
-                    {
+                    if (glitchRate <= 0f) {
                         Shader.SetGlobalInt("_ColorGlitchVal", Random.Range(0, 4096));
                         Shader.SetGlobalInt("_SpriteColorGlitchVal", Random.Range(0, 4096));
                         Singleton<InputManager>.Instance.SetColor(new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
                         glitchRate = 0.55f - wait * 0.1f;
                     }
                 }
-                else
-                {
+                else {
                     Shader.SetGlobalFloat("_ColorGlitchPercent", wait * 0.25f);
                     Shader.SetGlobalFloat("_SpriteColorGlitchPercent", wait * 0.25f);
                     Shader.SetGlobalFloat("_VertexGlitchIntensity", wait * 2f);

@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
-
 namespace DevTools {
     public static class Utils {
         public static Color GetRandomColor() => new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));

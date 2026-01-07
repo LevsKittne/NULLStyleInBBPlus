@@ -9,10 +9,8 @@ using UnityEngine;
 using static DevTools.ExtraVariables;
 using static NULL.Manager.CompatibilityModule.Plugins;
 
-namespace NULL.Content
-{
-    public class BossManager : MonoBehaviour
-    {
+namespace NULL.Content {
+    public class BossManager : MonoBehaviour {
         public static BossManager Instance { get; private set; }
         public bool BossActive { get; set; } = false;
         public bool PlayerHasProjectile { get; set; } = false;
@@ -29,10 +27,8 @@ namespace NULL.Content
         void Start() => Instance = this;
 
         void Update() {
-            if (BossActive && !bossTransitionWaiting)
-            {
-                if (nullNpc != null)
-                {
+            if (BossActive && !bossTransitionWaiting) {
+                if (nullNpc != null) {
                     nullNpc.baseSpeed = currentBossSpeed;
                     nullNpc.ReflectionSetVariable("baseSpeed", currentBossSpeed);
                     if (!nullNpc.slideMode) nullNpc.slideMode = true;
@@ -41,8 +37,7 @@ namespace NULL.Content
         }
 
         public void StartBossIntro() {
-            if (!nullNpc.isGlitch)
-            {
+            if (!nullNpc.isGlitch) {
                 nullNpc.AudMan.QueueAudio("Null_PreBoss_Intro");
                 nullNpc.AudMan.QueueAudio("Null_PreBoss_Loop", true);
             }
@@ -75,8 +70,7 @@ namespace NULL.Content
         }
 
         public void SpawnProjectiles(int count = 1) {
-            for (int i = 0; i < count; i++)
-            {
+            for (int i = 0; i < count; i++) {
                 var vector = RandomCellFromHallway.TileTransform.position;
                 var prList = ModManager.m.GetAll<NullProjectile>();
                 var projectile = Instantiate(prList[Random.Range(0, prList.Length)]);
@@ -91,8 +85,7 @@ namespace NULL.Content
                 SpawnProjectiles();
         }
         public void RemoveAllProjectiles() {
-            try
-            {
+            try {
                 foreach (var projectile in FindObjectsOfType<NullProjectile>())
                     Destroy(projectile.gameObject);
 
@@ -104,8 +97,7 @@ namespace NULL.Content
         public void NullHit(int val, bool pause = true) {
             health -= val;
 
-            if (!BossActive)
-            {
+            if (!BossActive) {
                 BossActive = true;
                 RemoveAllProjectiles();
 
@@ -115,20 +107,17 @@ namespace NULL.Content
                 bossTransitionWaiting = true;
                 Singleton<BaseGameManager>.Instance.StartCoroutine(NullPlusManager.AngerGlitch(8.5f));
             }
-            else
-            {
+            else {
                 currentBossSpeed += 0.5f;
                 currentPlayerSpeed += 2f;
             }
 
-            if (nullNpc != null)
-            {
+            if (nullNpc != null) {
                 nullNpc.baseSpeed = currentBossSpeed;
                 nullNpc.ReflectionSetVariable("baseSpeed", currentBossSpeed);
             }
 
-            if (health >= 0)
-            {
+            if (health >= 0) {
                 MusMan.SetSpeed(initMusSpeed + (10 - health) * 0.1f);
                 if (health > 1 && health < 10) MusMan.HangMidi(true, true);
                 if (health < 10) SpawnProjectiles(Mathf.FloorToInt((health - 1) / 3));
@@ -137,14 +126,12 @@ namespace NULL.Content
                     SpawnProjectiles(Mathf.FloorToInt((health - 1) / (IsTimes ? 1.25f : 2.5f)));
             }
 
-            if (health == 1)
-            {
+            if (health == 1) {
                 MusMan.HangMidi(true, true);
                 StartCoroutine(nullNpc.Rage());
             }
 
-            if (health <= 0)
-            {
+            if (health <= 0) {
                 BossActive = false;
                 Singleton<BaseGameManager>.Instance.LoadNextLevel();
                 ClearEffects();

@@ -7,10 +7,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using static UnityEngine.Object;
 
-namespace DevTools
-{
-    public static class ExtraVariables
-    {
+namespace DevTools {
+    public static class ExtraVariables {
         public static EnvironmentController ec => Singleton<BaseGameManager>.Instance.Ec;
         public static PlayerManager pm => Singleton<CoreGameManager>.Instance.GetPlayer(0);
         public static MovementModifier stopMod;
@@ -21,19 +19,15 @@ namespace DevTools
         public static bool AllNotebooks { get => (bool)Singleton<BaseGameManager>.Instance.ReflectionGetVariable("allNotebooksFound"); }
         public static int CurrentFloor { get => Singleton<CoreGameManager>.Instance.sceneObject.levelNo; }
         public static IntVector2 LevelCenter { get => new IntVector2(ec.levelSize.x / 2, ec.levelSize.z / 2); }
-        public static List<Cell> AllCellsInHall
-        {
-            get
-            {
+        public static List<Cell> AllCellsInHall {
+            get {
                 var res = ec.mainHall.AllTilesNoGarbage(false, false);
                 return res.Count > 0 ? res : ec.AllTilesNoGarbage(false, false);
             }
         }
         public static Cell RandomCell { get => ec.RandomCell(false, false, false); }
-        public static Cell RandomCellFromHallway
-        {
-            get
-            {
+        public static Cell RandomCellFromHallway {
+            get {
                 var a = AllCellsInHall;
                 return a[Random.Range(0, a.Count)];
             }
@@ -47,8 +41,7 @@ namespace DevTools
         }
 
         public static void ClearEffects() {
-            try
-            {
+            try {
                 var fogs = (List<Fog>)ec.ReflectionGetVariable("fogs");
                 foreach (var fog in fogs) ec.RemoveFog(fog);
                 foreach (var gum in FindObjectsOfType<Gum>()) gum.Cut();
@@ -72,8 +65,7 @@ namespace DevTools
 
         public static void ForceCloseAllElevators() {
             var bgm = Singleton<BaseGameManager>.Instance;
-            foreach (var elevator in ec.elevators)
-            {
+            foreach (var elevator in ec.elevators) {
                 elevator.Close();
                 elevator.Door.Shut();
                 bgm.ReflectionSetVariable("elevatorsClosed", (int)bgm.ReflectionGetVariable("elevatorsClosed") + 1);
@@ -95,8 +87,7 @@ namespace DevTools
             int lives = (int)Core.ReflectionGetVariable("lives");
             int extraLives = (int)Core.ReflectionGetVariable("extraLives");
 
-            if (lives < 1 && extraLives < 1)
-            {
+            if (lives < 1 && extraLives < 1) {
                 Singleton<GlobalCam>.Instance.SetListener(true);
                 Singleton<CoreGameManager>.Instance.ReturnToMenu();
                 return;
@@ -111,8 +102,7 @@ namespace DevTools
         }
         public static void PausePlayer(bool val) {
             Singleton<CoreGameManager>.Instance.disablePause = val;
-            if (val)
-            {
+            if (val) {
                 pm.Am.moveMods.Add(stopMod);
                 pm.itm.enabled = false;
                 return;
@@ -134,14 +124,11 @@ namespace DevTools
             gameLoader.cgmPre = PixelInternalAPI.Extensions.GenericExtensions.FindResourceObject<CoreGameManager>();
             var scene = customScene ?? Singleton<ModdedFileManager>.Instance.saveData.level;
 
-            if (!saveAvailable)
-            {
-                try
-                {
+            if (!saveAvailable) {
+                try {
                     gameLoader.CheckSeed();
                 }
-                catch (System.NullReferenceException)
-                {
+                catch (System.NullReferenceException) {
                     Debug.LogWarning("ExtraVariables: GameLoader.CheckSeed failed (seedInput is null). Defaulting to random seed.");
                     gameLoader.ReflectionSetVariable("useSeed", false);
                 }
@@ -149,8 +136,7 @@ namespace DevTools
                 gameLoader.Initialize(2);
                 gameLoader.SetMode(0);
             }
-            else
-            {
+            else {
                 Singleton<ModdedFileManager>.Instance.CreateSavedGameCoreManager(gameLoader);
                 gameLoader.SetMode(0);
                 Singleton<CursorManager>.Instance.LockCursor();

@@ -10,7 +10,7 @@ namespace NULL.Manager.CompatibilityModule {
             NullNPC nullPrefab = ModManager.m.Get<NullNPC>("NULL");
             NullNPC glitchPrefab = ModManager.m.Get<NullNPC>("NULLGLITCH");
 
-            if (LevelStudioPlugin.Instance != null) {
+                if (LevelStudioPlugin.Instance != null) {
                 if (LevelStudioPlugin.Instance.npcDisplays.ContainsKey("NULL")) {
                     LevelStudioPlugin.Instance.npcDisplays.Remove("NULL");
                 }

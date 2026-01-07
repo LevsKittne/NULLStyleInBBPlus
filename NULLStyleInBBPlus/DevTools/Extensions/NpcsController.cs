@@ -3,10 +3,8 @@ using System.Linq;
 using UnityEngine;
 using static NULL.Manager.ModManager;
 
-namespace DevTools
-{
-    public static class NpcsController
-    {
+namespace DevTools {
+    public static class NpcsController {
         static NpcState prevState;
         static NavigationState prevNavState;
 
@@ -43,8 +41,7 @@ namespace DevTools
         }
 
         public static void Pause(this NPC npc, float time = float.MaxValue) {
-            if (npc.behaviorStateMachine.currentState is NPC_Pause state)
-            {
+            if (npc.behaviorStateMachine.currentState is NPC_Pause state) {
                 try { checked { state.time += time; } }
                 catch { state.time = float.MaxValue; }
                 return;
@@ -57,23 +54,19 @@ namespace DevTools
 
         public static void Unpause(this NPC npc) => npc.behaviorStateMachine.ChangeState(new NPC_Pause(npc, 0f));
 
-
         public static bool IsPaused(this NPC npc) => npc.behaviorStateMachine.CurrentState.ToString().Contains("NPC_Pause");
-
 
         public static IEnumerator Rage(this Baldi b, float increaser = .1f) {
             if (increaser <= 0f)
                 yield break;
 
-            while (true)
-            {
+            while (true) {
                 b.GetAngry(increaser * b.TimeScale * Time.deltaTime);
                 yield return null;
             }
         }
 
-        public class NPC_Pause : NpcState
-        {
+        public class NPC_Pause : NpcState {
             public float time;
             public NPC_Pause(NPC npc, float time = float.MaxValue) : base(npc) {
                 this.time = time;
@@ -89,8 +82,7 @@ namespace DevTools
             public override void Update() {
                 base.Update();
                 time -= Time.deltaTime;
-                if (time <= 0f)
-                {
+                if (time <= 0f) {
                     npc.behaviorStateMachine.ChangeState(prevState);
                     npc.behaviorStateMachine.ChangeNavigationState(prevNavState);
                 }

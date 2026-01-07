@@ -4,14 +4,11 @@ using HarmonyLib;
 using MTM101BaldAPI;
 using NULL.Manager;
 using static NULL.Manager.ModManager;
-using static System.Text.RegularExpressions.Regex;
 
-namespace NULL.ModPatches
-{
+namespace NULL.ModPatches {
     [ConditionalPatchNULL]
     [HarmonyPatch]
-    internal class LevelLoaderPatcher
-    {
+    internal class LevelLoaderPatcher {
         [HarmonyPatch(typeof(GameLoader), nameof(GameLoader.LoadLevel))]
         [HarmonyPatch(typeof(BaseGameManager), "LoadSceneObject", new[] { typeof(SceneObject) })]
         [HarmonyPrefix]
@@ -30,12 +27,10 @@ namespace NULL.ModPatches
 
             sceneObject.SetLevel(nullLevels[GetLevelKey(sceneObject.levelObject.name, GlitchStyle, BasePlugin.characters.Value)]);
 
-            if (ModManager.DoubleTrouble)
-            {
+            if (ModManager.DoubleTrouble) {
                 sceneObject.levelTitle = "DT" + (sceneObject.levelNo + 1);
             }
-            else
-            {
+            else {
                 string prefix = sceneObject.levelObject.name.Contains("GLITCH") ? "G" : "N";
                 sceneObject.levelTitle = prefix + (sceneObject.levelNo + 1);
             }

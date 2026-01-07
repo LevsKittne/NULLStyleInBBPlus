@@ -3,8 +3,7 @@ using HarmonyLib;
 using NULL.Manager;
 using UnityEngine;
 
-namespace NULL.ModPatches
-{
+namespace NULL.ModPatches {
     [ConditionalPatchNULL]
     [HarmonyPatch(typeof(Structure_StudentSpawner), "SpawnStudents")]
     internal class StudentSpawnerPatch {
@@ -15,8 +14,7 @@ namespace NULL.ModPatches
 
     [ConditionalPatchNULL]
     [HarmonyPatch(typeof(Student), "Initialize")]
-    internal class StudentInitPatch
-    {
+    internal class StudentInitPatch {
         static bool Prefix(Student __instance) {
             if (ModManager.NullStyle) {
                 Object.Destroy(__instance.gameObject);

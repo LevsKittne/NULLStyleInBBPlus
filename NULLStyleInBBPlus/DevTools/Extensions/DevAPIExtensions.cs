@@ -1,19 +1,15 @@
-﻿using DevTools.Extensions;
-using MTM101BaldAPI.ObjectCreation;
+﻿using MTM101BaldAPI.ObjectCreation;
 using MTM101BaldAPI.Reflection;
 using PlusLevelStudio;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace DevTools.DevAPI.Extensions
-{
-    public static class NPCBuilderExtensions
-    {
+namespace DevTools.DevAPI.Extensions {
+    public static class NPCBuilderExtensions {
         static Dictionary<string, Sprite> m_spriteStorage = new Dictionary<string, Sprite>();
         public static T BuildNPC<T>(this NPCBuilder<T> b) where T : NPC {
             var npc = b.Build();
-            if (m_spriteStorage.ContainsKey(npc.name))
-            {
+            if (m_spriteStorage.ContainsKey(npc.name)) {
                 npc.spriteRenderer[0].sprite = m_spriteStorage[npc.name];
                 m_spriteStorage.Remove(npc.name);
             }

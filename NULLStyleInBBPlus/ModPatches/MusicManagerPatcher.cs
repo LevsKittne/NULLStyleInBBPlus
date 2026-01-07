@@ -5,30 +5,23 @@ using NULL.Content;
 using NULL.Manager;
 using System.Collections.Generic;
 
-namespace NULL.ModPatches
-{
+namespace NULL.ModPatches {
     [ConditionalPatchNULL]
     [HarmonyPatch(typeof(MusicManager))]
-    internal class MusicManagerPatcher
-    {
+    internal class MusicManagerPatcher {
         [HarmonyPatch("MidiEvent")]
         static void Postfix(MusicManager __instance, List<MPTKEvent> midiEvents) {
             var b = BossManager.Instance;
             if (!b || (b && b.health <= 0)) return;
 
-            for (int i = 0; i < midiEvents.Count; i++)
-            {
-                if (midiEvents[i].Command == MPTKCommand.MetaEvent && midiEvents[i].Meta == MPTKMeta.TextEvent)
-                {
-                    if (!b.bossTransitionWaiting)
-                    {
-                        if (midiEvents[i].Info == "Loop")
-                        {
+            for (int i = 0; i < midiEvents.Count; i++) {
+                if (midiEvents[i].Command == MPTKCommand.MetaEvent && midiEvents[i].Meta == MPTKMeta.TextEvent) {
+                    if (!b.bossTransitionWaiting) {
+                        if (midiEvents[i].Info == "Loop") {
                             __instance.MidiPlayer.MPTK_TickCurrent = 0L;
                         }
                     }
-                    else
-                    {
+                    else {
                         __instance.MidiPlayer.MPTK_TickCurrent = 4992L;
                         b.bossTransitionWaiting = false;
                         __instance.MidiPlayer.MPTK_Loop = false;

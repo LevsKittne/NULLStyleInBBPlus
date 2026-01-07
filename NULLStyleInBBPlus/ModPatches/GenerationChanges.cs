@@ -3,31 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using HarmonyLib;
-using DevTools;
 using NULL.Manager;
 using NULL.NPCs;
 using BepInEx.Bootstrap;
 using System.Reflection;
 
-namespace NULL.ModPatches
-{
+namespace NULL.ModPatches {
     [HarmonyPatch]
-    internal class GenerationChanges
-    {
+    internal class GenerationChanges {
 
         static bool IsEditor() {
             if (!Chainloader.PluginInfos.ContainsKey("mtm101.rulerp.baldiplus.levelstudio")) return false;
 
             Type editorType = Type.GetType("PlusLevelStudio.Editor.EditorController, PlusLevelStudio");
-            if (editorType != null)
-            {
+            if (editorType != null) {
                 var val = editorType.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static)?.GetValue(null);
                 if (val != null) return true;
             }
 
             Type playType = Type.GetType("PlusLevelStudio.EditorPlayModeManager, PlusLevelStudio");
-            if (playType != null)
-            {
+            if (playType != null) {
                 var val = playType.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static)?.GetValue(null);
                 if (val != null) return true;
             }
@@ -42,8 +37,7 @@ namespace NULL.ModPatches
 
             if (!ModManager.NullStyle && !ModManager.DoubleTrouble) return;
 
-            try
-            {
+            try {
                 LevelGenerationParameters ld = __instance.ld;
 
                 if (ld.randomEvents != null)
@@ -62,16 +56,13 @@ namespace NULL.ModPatches
                 if (nullNpc == null) Debug.LogError("NULL NPC not found in AssetManager!");
                 if (glitchNpc == null) Debug.LogError("NULLGLITCH NPC not found in AssetManager!");
 
-                if (ModManager.DoubleTrouble)
-                {
-                    if (nullNpc != null)
-                    {
+                if (ModManager.DoubleTrouble) {
+                    if (nullNpc != null) {
                         ld.potentialBaldis = new WeightedNPC[] {
                             new WeightedNPC() { selection = nullNpc, weight = 100 }
                         };
                     }
-                    else
-                    {
+                    else {
                         ld.potentialBaldis = new WeightedNPC[0];
                     }
 
@@ -79,12 +70,10 @@ namespace NULL.ModPatches
                     if (glitchNpc != null) forcedList.Add(glitchNpc);
                     ld.forcedNpcs = forcedList.ToArray();
                 }
-                else if (ModManager.NullStyle)
-                {
+                else if (ModManager.NullStyle) {
                     var targetNpc = ModManager.GlitchStyle ? glitchNpc : nullNpc;
 
-                    if (targetNpc != null)
-                    {
+                    if (targetNpc != null) {
                         ld.potentialBaldis = new WeightedNPC[] {
                             new WeightedNPC() { selection = targetNpc, weight = 100 }
                         };
@@ -93,16 +82,12 @@ namespace NULL.ModPatches
                         ld.forcedNpcs = new NPC[0];
                 }
 
-                if (ld.standardHallBuilders != null)
-                {
+                if (ld.standardHallBuilders != null) {
                     var filteredBuilders = new List<RandomHallBuilder>();
-                    foreach (var builder in ld.standardHallBuilders)
-                    {
-                        if (builder.selectable != null)
-                        {
+                    foreach (var builder in ld.standardHallBuilders) {
+                        if (builder.selectable != null) {
                             string name = builder.selectable.name.ToLower();
-                            if (!name.Contains("door") && !name.Contains("gate") && !name.Contains("lock") && !name.Contains("coin"))
-                            {
+                            if (!name.Contains("door") && !name.Contains("gate") && !name.Contains("lock") && !name.Contains("coin")) {
                                 filteredBuilders.Add(builder);
                             }
                         }
@@ -110,8 +95,7 @@ namespace NULL.ModPatches
                     ld.standardHallBuilders = filteredBuilders.ToArray();
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Debug.LogError("Error in GenerationChanges: " + e.Message);
                 Debug.LogException(e);
             }
@@ -132,21 +116,16 @@ namespace NULL.ModPatches
             if (IsEditor()) return;
             if (!ModManager.NullStyle || __result == null) return;
 
-            try
-            {
-                if (__result.doorPre != null && __result.doorPre.GetComponent<FacultyOnlyDoor>() != null)
-                {
-                    if (__instance.nullDoorPre != null)
-                    {
+            try {
+                if (__result.doorPre != null && __result.doorPre.GetComponent<FacultyOnlyDoor>() != null) {
+                    if (__instance.nullDoorPre != null) {
                         __result.doorPre = __instance.nullDoorPre;
                     }
-                    else
-                    {
+                    else {
                         var stdDoor = Resources.FindObjectsOfTypeAll<StandardDoor>()
                             .FirstOrDefault(x => x.name == "ClassDoor_Standard");
 
-                        if (stdDoor != null)
-                        {
+                        if (stdDoor != null) {
                             __result.doorPre = stdDoor;
                         }
                     }

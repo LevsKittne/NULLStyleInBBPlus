@@ -47,8 +47,7 @@ namespace DevTools {
             return canvas.GetComponent<Canvas>();
         }
 
-        public class MenuUI : MonoBehaviour
-        {
+        public class MenuUI : MonoBehaviour {
             public string localizedText = "Text";
             void Update() => gameObject.GetComponent<TextLocalizer>()?.GetLocalizedText(localizedText);
         }

@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 using HarmonyLib;
 
-namespace DevTools.Patches
-{
+namespace DevTools.Patches {
     [HarmonyPatch(typeof(AudioManager))]
-    public class AudioManagerPatcher
-    {
+    public class AudioManagerPatcher {
         public static List<string> disabledSounds = new List<string>();
 
         [HarmonyPatch(typeof(AudioManager), "QueueAudio", new[] { typeof(SoundObject), typeof(bool) })]

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static NULL.Manager.ModManager;
 
 namespace NULL.Manager {
     internal static partial class ModManager {

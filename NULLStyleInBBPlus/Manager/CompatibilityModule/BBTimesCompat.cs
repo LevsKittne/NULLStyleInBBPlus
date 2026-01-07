@@ -5,13 +5,11 @@ using NULL.Content;
 using System.Collections;
 using UnityEngine;
 
-namespace NULL.Manager.CompatibilityModule
-{
+namespace NULL.Manager.CompatibilityModule {
 
     [CompatPatchBBTimes]
     [HarmonyPatch]
-    internal class BBTimesCompat
-    {
+    internal class BBTimesCompat {
         internal static float _fixedAnger;
         internal static Coroutine angerCoroutine;
         public class CompatPatchBBTimes : ConditionalPatchNULL { public override bool ShouldPatch() => base.ShouldPatch() && Plugins.IsTimes; }
@@ -27,10 +25,8 @@ namespace NULL.Manager.CompatibilityModule
         [HarmonyPrefix]
         static void OnStartBossIntro(BossManager __instance) {
             var n = __instance.nullNpc;
-            if (n != null)
-            {
-                try
-                {
+            if (n != null) {
+                try {
                     n.StopCoroutine(angerCoroutine);
                 }
                 catch { }

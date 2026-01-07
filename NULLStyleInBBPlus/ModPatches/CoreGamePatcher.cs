@@ -8,12 +8,10 @@ using System.Collections;
 using UnityEngine;
 using static DevTools.ExtraVariables;
 
-namespace NULL.ModPatches
-{
+namespace NULL.ModPatches {
     [ConditionalPatchNULL]
     [HarmonyPatch(typeof(CoreGameManager))]
-    internal class CoreGamePatcher
-    {
+    internal class CoreGamePatcher {
         [HarmonyPatch("ReturnToMenu")]
         [HarmonyPrefix]
         static void ReturnToMenu_Fix() {
@@ -21,8 +19,7 @@ namespace NULL.ModPatches
             Reset();
             BossManager.Instance?.RemoveAllProjectiles();
             Singleton<MusicManager>.Instance.KillMidi();
-            try
-            {
+            try {
                 Object.Destroy(Singleton<CoreGameManager>.Instance.GetHud(0).BaldiTv.gameObject.GetComponent<CustomComponents.NullTV>());
             }
             catch { }
@@ -33,8 +30,7 @@ namespace NULL.ModPatches
         static bool TryQuit() {
             var nullNpc = NullPlusManager.instance.nullNpc;
             if (nullNpc != null && !nullNpc.Hidden && !nullNpc.IsPaused()
-                && Singleton<BaseGameManager>.Instance.FoundNotebooks >= 2)
-            {
+                && Singleton<BaseGameManager>.Instance.FoundNotebooks >= 2) {
                 Core.Pause(false);
                 nullNpc.transform.position = pm.transform.position + pm.transform.forward * 2f;
                 nullNpc.transform.LookAt(pm.transform);
@@ -76,29 +72,25 @@ namespace NULL.ModPatches
 
             yield return null;
 
-            while (time <= 5f)
-            {
+            while (time <= 5f) {
                 time += Time.unscaledDeltaTime * 0.5f;
                 Shader.SetGlobalFloat("_VertexGlitchSeed", Random.Range(0f, 1000f));
                 Shader.SetGlobalFloat("_TileVertexGlitchSeed", Random.Range(0f, 1000f));
                 Singleton<InputManager>.Instance.Rumble(time / 5f, 0.05f);
 
-                if (!Singleton<PlayerFileManager>.Instance.reduceFlashing)
-                {
+                if (!Singleton<PlayerFileManager>.Instance.reduceFlashing) {
                     glitchRate -= Time.unscaledDeltaTime;
                     Shader.SetGlobalFloat("_VertexGlitchIntensity", Mathf.Pow(time, 2.2f));
                     Shader.SetGlobalFloat("_TileVertexGlitchIntensity", Mathf.Pow(time, 2.2f));
                     Shader.SetGlobalFloat("_ColorGlitchPercent", time * 0.05f);
 
-                    if (glitchRate <= 0f)
-                    {
+                    if (glitchRate <= 0f) {
                         Shader.SetGlobalInt("_ColorGlitchVal", Random.Range(0, 4096));
                         Singleton<InputManager>.Instance.SetColor(new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
                         glitchRate = 0.55f - time * 0.1f;
                     }
                 }
-                else
-                {
+                else {
                     Shader.SetGlobalFloat("_ColorGlitchPercent", time * 0.25f);
                     Shader.SetGlobalFloat("_VertexGlitchIntensity", time * 2f);
                     Shader.SetGlobalFloat("_TileVertexGlitchIntensity", time * 2f);
@@ -121,15 +113,12 @@ namespace NULL.ModPatches
                     Singleton<GlobalCam>.Instance.SetListener(true);
                     manager.ReturnToMenu();
                 }
-                else
-                {
-                    if (lives > 0)
-                    {
+                else {
+                    if (lives > 0) {
                         manager.ReflectionSetVariable("lives", lives - 1);
                         manager.ReflectionSetVariable("attempts", attempts + 1);
                     }
-                    else
-                    {
+                    else {
                         manager.ReflectionSetVariable("extraLives", extraLives - 1);
                     }
 

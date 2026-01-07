@@ -21,21 +21,17 @@ using static NULL.BasePlugin;
 using static PixelInternalAPI.Extensions.GenericExtensions;
 using static UnityEngine.Object;
 
-namespace NULL.Manager
-{
-    internal static partial class ModManager
-    {
+namespace NULL.Manager {
+    internal static partial class ModManager {
         public static BasePlugin plug;
 
         static bool _nullStyle;
         static bool _glitchStyle;
         static bool _doubleTrouble;
         public static AssetManager m = new AssetManager();
-        public static bool NullStyle
-        {
+        public static bool NullStyle {
             get => _nullStyle;
-            set
-            {
+            set {
                 _nullStyle = value;
 
                 if (!_glitchStyle)
@@ -46,11 +42,9 @@ namespace NULL.Manager
             }
         }
 
-        public static bool GlitchStyle
-        {
+        public static bool GlitchStyle {
             get => _nullStyle && _glitchStyle;
-            set
-            {
+            set {
                 _glitchStyle = value;
                 if (!NullStyle && value)
                     NullStyle = value;
@@ -59,11 +53,9 @@ namespace NULL.Manager
             }
         }
 
-        public static bool DoubleTrouble
-        {
+        public static bool DoubleTrouble {
             get => _nullStyle && _glitchStyle && _doubleTrouble;
-            set
-            {
+            set {
                 _doubleTrouble = value;
                 if (!NullStyle && value)
                     NullStyle = value;
@@ -87,8 +79,7 @@ namespace NULL.Manager
             TryRunMethod(CreateNPCs);
             yield return "Loading captions...";
             TryRunMethod(LoadCaptions);
-            if (e)
-            {
+            if (e) {
                 yield return "Registering NULL & GLITCH for Level Studio...";
                 EditorCompat.Register();
             }
@@ -184,13 +175,11 @@ namespace NULL.Manager
                     new WeightedItemObject() { selection = chalkEraser, weight = 100 }
                 };
 
-                if (ld.randomEvents != null)
-                {
-                    ld.randomEvents.RemoveAll(x => x != null && x.selection.Type == RandomEventType.Snap);
+                if (ld.randomEvents != null) {
+                    ld.randomEvents.RemoveAll(x => x != null && x.selection != null && x.selection.Type == RandomEventType.Snap);
                 }
 
-                if (!withNpcs)
-                {
+                if (!withNpcs) {
                     ld.additionalNPCs = 0;
                     ld.forcedNpcs = new NPC[0];
                 }
@@ -201,15 +190,13 @@ namespace NULL.Manager
 
             Dictionary<SceneObject, SceneObject> oldToNewMapping_Scenes = new Dictionary<SceneObject, SceneObject>();
 
-            foreach (SceneObject obj in objs)
-            {
+            foreach (SceneObject obj in objs) {
                 if (!(obj.levelObject is CustomLevelObject))
                     continue;
 
                 var scene = ScriptableObject.CreateInstance<SceneObject>();
                 Dictionary<string, CustomLevelObject> m_nullLevels = new Dictionary<string, CustomLevelObject>();
-                if (obj.manager.GetType() == typeof(MainGameManager))
-                {
+                if (obj.manager.GetType() == typeof(MainGameManager)) {
                     CustomLevelObject nullMain = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(obj.levelObject);
                     nullMain.name = "NULL_" + obj.levelObject.name;
                     Register_Internal(nullMain);
@@ -238,8 +225,7 @@ namespace NULL.Manager
                     scene.levelNo = obj.levelNo;
                     scene.levelObject = nullMain;
 
-                    if (System.Text.RegularExpressions.Regex.IsMatch(obj.levelTitle, @"^F\d$"))
-                    {
+                    if (System.Text.RegularExpressions.Regex.IsMatch(obj.levelTitle, @"^F\d$")) {
                         scene.name = "NULL_" + obj.levelTitle;
                         scene.levelTitle = "N" + obj.levelTitle.Substring(1);
                     }
@@ -254,12 +240,10 @@ namespace NULL.Manager
                     scene.skybox = obj.skybox;
                     scene.usesMap = obj.usesMap;
 
-                    if (scene.levelObject.name.Contains("_NoNpcs"))
-                    {
+                    if (scene.levelObject.name.Contains("_NoNpcs")) {
                         scene.potentialNPCs = new List<WeightedNPC>();
                     }
-                    else
-                    {
+                    else {
                         scene.potentialNPCs = new List<WeightedNPC>(obj.potentialNPCs);
                     }
 
@@ -298,14 +282,11 @@ namespace NULL.Manager
 
             var tilesList = new List<CellData>();
 
-            for (int x = 3; x <= 9; x++)
-            {
-                for (int z = 2; z <= 9; z++)
-                {
+            for (int x = 3; x <= 9; x++) {
+                for (int z = 2; z <= 9; z++) {
                     int type = 0;
                     int roomId = 1;
-                    switch (x)
-                    {
+                    switch (x) {
                         case 3:
                             type = types[x - 3, z - 2]; break;
                         case 4:
@@ -336,21 +317,17 @@ namespace NULL.Manager
             RoomFunctionContainer defaultContainer = null;
             var reflexOffice = Resources.FindObjectsOfTypeAll<RoomAsset>().FirstOrDefault(x => x.name == "Room_ReflexOffice_0");
 
-            if (reflexOffice != null)
-            {
+            if (reflexOffice != null) {
                 lightPrefab = reflexOffice.lightPre;
                 defaultContainer = reflexOffice.roomFunctionContainer;
             }
-            else
-            {
+            else {
                 var anyOffice = Resources.FindObjectsOfTypeAll<RoomAsset>().FirstOrDefault(x => x.name.Contains("Office"));
-                if (anyOffice != null)
-                {
+                if (anyOffice != null) {
                     lightPrefab = anyOffice.lightPre;
                     defaultContainer = anyOffice.roomFunctionContainer;
                 }
-                else
-                {
+                else {
                     lightPrefab = Find<Transform>("StandardLight");
                     defaultContainer = Resources.FindObjectsOfTypeAll<RoomFunctionContainer>().FirstOrDefault();
                 }
@@ -369,8 +346,7 @@ namespace NULL.Manager
             closedMat.mainTexture = m.Get<Sprite>("MyOffice_Closed").texture;
             customDoorMats.shut = closedMat;
 
-            RoomData data = new RoomData()
-            {
+            RoomData data = new RoomData() {
                 name = "Office",
                 category = RoomCategory.Office,
                 type = RoomType.Room,
@@ -387,43 +363,36 @@ namespace NULL.Manager
                 hasActivity = true
             };
 
-            data.basicObjects.Add(new BasicObjectData()
-            {
+            data.basicObjects.Add(new BasicObjectData() {
                 position = new Vector3(45, 0, 77.5f),
                 prefab = Find<Transform>("BigDesk")
             });
 
-            data.basicObjects.Add(new BasicObjectData()
-            {
+            data.basicObjects.Add(new BasicObjectData() {
                 position = new Vector3(53, 0, 73.5f),
                 prefab = Find<Transform>("BigDesk"),
                 rotation = Quaternion.Euler(0, 90, 0)
             });
-            data.basicObjects.Add(new BasicObjectData()
-            {
+            data.basicObjects.Add(new BasicObjectData() {
                 position = new Vector3(55, 0, 65),
                 prefab = Find<Transform>("CeilingFan")
 
             });
-            data.basicObjects.Add(new BasicObjectData()
-            {
+            data.basicObjects.Add(new BasicObjectData() {
                 position = new Vector3(58.09f, 4.05f, 52.01f),
                 prefab = Find<Transform>("Decor_Papers")
             });
-            data.basicObjects.Add(new BasicObjectData()
-            {
+            data.basicObjects.Add(new BasicObjectData() {
                 position = new Vector3(55, 0, 52),
                 prefab = Find<Transform>("FilingCabinet_Short"),
                 rotation = Quaternion.Euler(0, 270, 0)
             });
-            data.basicObjects.Add(new BasicObjectData()
-            {
+            data.basicObjects.Add(new BasicObjectData() {
                 position = new Vector3(45, 3.75f, 77.5f),
                 prefab = Find<Transform>("MyComputer"),
                 rotation = Quaternion.Euler(0, 270, 0)
             });
-            data.basicObjects.Add(new BasicObjectData()
-            {
+            data.basicObjects.Add(new BasicObjectData() {
                 position = new Vector3(44.28f, 0, 74.05f),
                 prefab = Find<Transform>("Chair_Test"),
             });
@@ -431,8 +400,7 @@ namespace NULL.Manager
             levelAsset.rooms.Add(data);
 
             var black = Find<Texture2D>("BlackTexture");
-            data = new RoomData()
-            {
+            data = new RoomData() {
                 name = "Empty",
                 category = RoomCategory.Null,
                 type = RoomType.Hall,
@@ -444,8 +412,7 @@ namespace NULL.Manager
             };
             levelAsset.rooms.Add(data);
 
-            data = new RoomData()
-            {
+            data = new RoomData() {
                 name = "Supplies",
                 category = RoomCategory.Special,
                 type = RoomType.Room,
@@ -462,8 +429,7 @@ namespace NULL.Manager
             levelAsset.doors.Add(new DoorData(1, door, new IntVector2(6, 5), Direction.North));
             levelAsset.doors.Add(new DoorData(2, door, new IntVector2(4, 4), Direction.North));
 
-            levelAsset.lights.Add(new LightSourceData()
-            {
+            levelAsset.lights.Add(new LightSourceData() {
                 prefab = lightPrefab,
                 position = new IntVector2(5, 6),
                 color = Color.white,
@@ -471,38 +437,32 @@ namespace NULL.Manager
             });
 
             var officeWindow = ObjectCreators.CreatePosterObject(m.Get<Sprite>("MyOfficeWindow").texture, new PosterTextData[0]);
-            levelAsset.posters.Add(new PosterData()
-            {
+            levelAsset.posters.Add(new PosterData() {
                 poster = officeWindow,
                 position = new IntVector2(4, 5),
                 direction = Direction.West
             });
-            levelAsset.posters.Add(new PosterData()
-            {
+            levelAsset.posters.Add(new PosterData() {
                 poster = officeWindow,
                 position = new IntVector2(6, 7),
                 direction = Direction.North
             });
-            levelAsset.posters.Add(new PosterData()
-            {
+            levelAsset.posters.Add(new PosterData() {
                 poster = ObjectCreators.CreatePosterObject(m.Get<Sprite>("MyOfficeWhiteboard").texture, new PosterTextData[0]),
                 position = new IntVector2(4, 7),
                 direction = Direction.West
             });
-            levelAsset.posters.Add(new PosterData()
-            {
+            levelAsset.posters.Add(new PosterData() {
                 poster = ObjectCreators.CreatePosterObject(m.Get<Sprite>("MyOfficeRulesPoster").texture, new PosterTextData[0]),
                 position = new IntVector2(6, 7),
                 direction = Direction.East
             });
-            levelAsset.posters.Add(new PosterData()
-            {
+            levelAsset.posters.Add(new PosterData() {
                 poster = ObjectCreators.CreatePosterObject(m.Get<Sprite>("MyOfficePlusPoster").texture, new PosterTextData[0]),
                 position = new IntVector2(6, 6),
                 direction = Direction.East
             });
-            levelAsset.posters.Add(new PosterData()
-            {
+            levelAsset.posters.Add(new PosterData() {
                 poster = ObjectCreators.CreatePosterObject(m.Get<Sprite>("MyOfficeToys").texture, new PosterTextData[0]),
                 position = new IntVector2(5, 5),
                 direction = Direction.South
@@ -523,13 +483,10 @@ namespace NULL.Manager
             for (int i = 0; i < nullScenes.Count - 1; i++)
                 nullScenes[i].nextLevel = nullScenes[i + 1];
 
-            foreach (var kvp in oldToNewMapping_Scenes)
-            {
-                if (kvp.Key.previousLevels != null && kvp.Key.previousLevels.Length > 0)
-                {
+            foreach (var kvp in oldToNewMapping_Scenes) {
+                if (kvp.Key.previousLevels != null && kvp.Key.previousLevels.Length > 0) {
                     kvp.Value.previousLevels = new SceneObject[kvp.Key.previousLevels.Length];
-                    for (int i = 0; i < kvp.Key.previousLevels.Length; i++)
-                    {
+                    for (int i = 0; i < kvp.Key.previousLevels.Length; i++) {
                         if (oldToNewMapping_Scenes.ContainsKey(kvp.Key.previousLevels[i]))
                             kvp.Value.previousLevels[i] = oldToNewMapping_Scenes[kvp.Key.previousLevels[i]];
                     }
@@ -538,8 +495,7 @@ namespace NULL.Manager
         }
 
         public static void DisableSounds(bool val, params string[] sounds) {
-            foreach (var sound in sounds)
-            {
+            foreach (var sound in sounds) {
                 var s = sound.ToString();
                 if (val) AudioManagerPatcher.disabledSounds.Add(s);
                 else if (AudioManagerPatcher.disabledSounds.Contains(s))
@@ -549,12 +505,10 @@ namespace NULL.Manager
         public static bool ModInstalled(string mod) => Chainloader.PluginInfos.ContainsKey(mod);
 
         public static void TryRunMethod(Action actionToRun, bool causeCrashIfFail = true) {
-            try
-            {
+            try {
                 actionToRun();
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Debug.LogWarning("------ Error caught during an action ------");
                 Debug.LogException(e);
 
@@ -564,8 +518,7 @@ namespace NULL.Manager
             }
         }
         public static bool TryRunMethodIfModInstalled(string guid, Action act) {
-            if (ModInstalled(guid))
-            {
+            if (ModInstalled(guid)) {
                 TryRunMethod(act);
                 return true;
             }
