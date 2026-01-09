@@ -11,12 +11,14 @@ namespace NULL.Manager {
         private ConfigEntry<bool> charactersConfig => BasePlugin.characters;
         private ConfigEntry<bool> resultsTvConfig => BasePlugin.disableResultsTV;
         private ConfigEntry<bool> lightGlitchConfig => BasePlugin.lightGlitch;
+        private ConfigEntry<bool> gameCrashConfig => BasePlugin.gameCrash;
         private ConfigEntry<int> healthConfig => BasePlugin.nullHealth;
 
         private MenuToggle ambienceToggle;
         private MenuToggle charactersToggle;
         private MenuToggle resultsTvToggle;
         private MenuToggle lightGlitchToggle;
+        private MenuToggle gameCrashToggle;
 
         public override void Build() {
             ambienceToggle = CreateToggle("AmbienceToggle", "Dark Ambience", ambienceConfig.Value, new Vector3(0f, 75f, 0f), 300f);
@@ -63,13 +65,24 @@ namespace NULL.Manager {
                 });
             }
 
+            gameCrashToggle = CreateToggle("GameCrashToggle", "Game Crash", gameCrashConfig.Value, new Vector3(0f, -85f, 0f), 300f);
+            if (gameCrashToggle != null) {
+                AddTooltip(gameCrashToggle, "If enabled, the game will force close when you are caught by NULL.");
+                StyleToggleCentered(gameCrashToggle, 150f);
+                var btn = gameCrashToggle.transform.Find("HotSpot").GetComponent<StandardMenuButton>();
+                btn.OnPress.AddListener(() => {
+                    gameCrashConfig.Value = gameCrashToggle.Value;
+                    OptionsManager.SaveOptions();
+                });
+            }
+
             CreateClickableTextInt(
                 "HealthBtn",
                 "Health: ",
                 healthConfig,
                 1, 1000000,
                 "",
-                new Vector3(0f, -85f, 0f),
+                new Vector3(0f, -125f, 0f),
                 "Click to type custom health value (1-1000000). <color=#008000ff>Default is 10."
             );
         }

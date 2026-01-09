@@ -34,7 +34,6 @@ namespace NULL.ModPatches {
                 Core.Pause(false);
                 nullNpc.transform.position = pm.transform.position + pm.transform.forward * 2f;
                 nullNpc.transform.LookAt(pm.transform);
-
                 Singleton<CoreGameManager>.Instance.StartCoroutine(CrashSequence(Singleton<CoreGameManager>.Instance, pm.transform, nullNpc, true));
                 return false;
             }
@@ -131,7 +130,7 @@ namespace NULL.ModPatches {
         [HarmonyPrefix]
         private static bool EndGame_Prefix(CoreGameManager __instance, Transform player, Baldi baldi) {
             if (baldi.gameObject.name.Contains("NULL")) {
-                bool isFatal = Singleton<BaseGameManager>.Instance.FoundNotebooks >= 2;
+                bool isFatal = Singleton<BaseGameManager>.Instance.FoundNotebooks >= 2 || BasePlugin.gameCrash.Value;
                 __instance.StartCoroutine(CrashSequence(__instance, player, baldi, isFatal));
                 return false;
             }
