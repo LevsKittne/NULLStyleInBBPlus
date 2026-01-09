@@ -21,8 +21,8 @@ namespace NULL.Content {
         internal static List<NullProjectile> projectiles = new List<NullProjectile>();
         internal NullNPC nullNpc => ModCache.NullNPC;
 
-        public float currentBossSpeed = 6f;
-        public float currentPlayerSpeed = 19f;
+        public float currentBossSpeed = 24f;
+        public float currentPlayerSpeed = 24f;
 
         void Awake() {
             Instance = this;
@@ -49,6 +49,9 @@ namespace NULL.Content {
             if (nullNpc != null) {
                 nullNpc.baseSpeed = currentBossSpeed;
                 nullNpc.ReflectionSetVariable("baseSpeed", currentBossSpeed);
+                if (nullNpc.Navigator != null && nullNpc.Navigator.Am != null) {
+                    nullNpc.Navigator.Am.ReflectionSetVariable("ignoreMultiplier", true);
+                }
             }
         }
 
@@ -150,7 +153,7 @@ namespace NULL.Content {
                 BossActive = true;
                 RemoveAllProjectiles();
 
-                currentBossSpeed = 6f;
+                currentBossSpeed = 24f;
                 currentPlayerSpeed = 24f;
 
                 bossTransitionWaiting = true;
@@ -159,7 +162,7 @@ namespace NULL.Content {
                 }
             }
             else {
-                currentBossSpeed += 0.75f;
+                currentBossSpeed += 2f;
                 currentPlayerSpeed += 2f;
             }
 

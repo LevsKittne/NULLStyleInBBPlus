@@ -10,19 +10,19 @@ namespace NULL.Manager {
         private ConfigEntry<bool> ambienceConfig => BasePlugin.darkAtmosphere;
         private ConfigEntry<bool> charactersConfig => BasePlugin.characters;
         private ConfigEntry<bool> resultsTvConfig => BasePlugin.disableResultsTV;
+        private ConfigEntry<bool> lightGlitchConfig => BasePlugin.lightGlitch;
         private ConfigEntry<int> healthConfig => BasePlugin.nullHealth;
 
         private MenuToggle ambienceToggle;
         private MenuToggle charactersToggle;
         private MenuToggle resultsTvToggle;
+        private MenuToggle lightGlitchToggle;
 
         public override void Build() {
-            ambienceToggle = CreateToggle("AmbienceToggle", "Dark Ambience", ambienceConfig.Value, new Vector3(0f, 60f, 0f), 300f);
-
+            ambienceToggle = CreateToggle("AmbienceToggle", "Dark Ambience", ambienceConfig.Value, new Vector3(0f, 75f, 0f), 300f);
             if (ambienceToggle != null) {
                 AddTooltip(ambienceToggle, "There is no lighting in the school. Suspenseful background ambient track plays.");
                 StyleToggleCentered(ambienceToggle, 150f);
-
                 var btn = ambienceToggle.transform.Find("HotSpot").GetComponent<StandardMenuButton>();
                 btn.OnPress.AddListener(() => {
                     ambienceConfig.Value = ambienceToggle.Value;
@@ -30,12 +30,10 @@ namespace NULL.Manager {
                 });
             }
 
-            charactersToggle = CreateToggle("CharactersToggle", "Other Characters", charactersConfig.Value, new Vector3(0f, 20f, 0f), 300f);
-
+            charactersToggle = CreateToggle("CharactersToggle", "Other Characters", charactersConfig.Value, new Vector3(0f, 35f, 0f), 300f);
             if (charactersToggle != null) {
                 AddTooltip(charactersToggle, "Oh no! Null called other characters to help!");
                 StyleToggleCentered(charactersToggle, 150f);
-
                 var btn = charactersToggle.transform.Find("HotSpot").GetComponent<StandardMenuButton>();
                 btn.OnPress.AddListener(() => {
                     charactersConfig.Value = charactersToggle.Value;
@@ -43,15 +41,24 @@ namespace NULL.Manager {
                 });
             }
 
-            resultsTvToggle = CreateToggle("ResultsTvToggle", "Disable Results TV", resultsTvConfig.Value, new Vector3(0f, -20f, 0f), 300f);
-
+            resultsTvToggle = CreateToggle("ResultsTvToggle", "Disable Results TV", resultsTvConfig.Value, new Vector3(0f, -5f, 0f), 300f);
             if (resultsTvToggle != null) {
                 AddTooltip(resultsTvToggle, "If enabled, the score screen in the elevator will be hidden and the animation skipped.");
                 StyleToggleCentered(resultsTvToggle, 150f);
-
                 var btn = resultsTvToggle.transform.Find("HotSpot").GetComponent<StandardMenuButton>();
                 btn.OnPress.AddListener(() => {
                     resultsTvConfig.Value = resultsTvToggle.Value;
+                    OptionsManager.SaveOptions();
+                });
+            }
+
+            lightGlitchToggle = CreateToggle("LightGlitchToggle", "Dynamic Lighting", lightGlitchConfig.Value, new Vector3(0f, -45f, 0f), 300f);
+            if (lightGlitchToggle != null) {
+                AddTooltip(lightGlitchToggle, "If enabled, lights near the boss will flicker.");
+                StyleToggleCentered(lightGlitchToggle, 150f);
+                var btn = lightGlitchToggle.transform.Find("HotSpot").GetComponent<StandardMenuButton>();
+                btn.OnPress.AddListener(() => {
+                    lightGlitchConfig.Value = lightGlitchToggle.Value;
                     OptionsManager.SaveOptions();
                 });
             }
@@ -62,7 +69,7 @@ namespace NULL.Manager {
                 healthConfig,
                 1, 1000000,
                 "",
-                new Vector3(0f, -60f, 0f),
+                new Vector3(0f, -85f, 0f),
                 "Click to type custom health value (1-1000000). <color=#008000ff>Default is 10."
             );
         }

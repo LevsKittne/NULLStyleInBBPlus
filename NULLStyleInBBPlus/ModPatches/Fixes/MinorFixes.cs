@@ -35,7 +35,8 @@ namespace NULL.ModPatches.Fixes {
         [HarmonyPostfix]
         static void AngerNullOnSpawn(EnvironmentController __instance) {
             __instance.angerOnSpawn = true;
-            __instance.ReflectionSetVariable("npcSpawnBufferRadius", BasePlugin.characters.Value ? 50f : 40f);
+            __instance.ReflectionSetVariable("npcSpawnBufferRadius", 10f);
+            __instance.ReflectionSetVariable("npcSpawnBufferWidth", 5f);
         }
 
         [HarmonyPatch(typeof(ITM_PrincipalWhistle), "Use")]

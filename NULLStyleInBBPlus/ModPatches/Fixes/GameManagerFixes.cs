@@ -1,10 +1,6 @@
 ﻿using DevTools;
 using DevTools.Extensions;
 using HarmonyLib;
-using MTM101BaldAPI.Reflection;
-using NULL.NPCs;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace NULL.ModPatches.Fixes {
     [ConditionalPatchNULL]
@@ -21,9 +17,11 @@ namespace NULL.ModPatches.Fixes {
         [HarmonyPatch(nameof(BaseGameManager.PleaseBaldi))]
         [HarmonyPrefix]
         static bool PleaseNull() {
+            /*
             var npcs = (List<NPC>)ExtraVariables.ec.ReflectionGetVariable("npcs");
             npcs.FindAll(x => x.GetType() == typeof(NullNPC)).Do(x => x.Pause(Random.Range(6f, 7f)));
-            return false;
+            */ 
+            return false; //stop
         }
         [HarmonyPatch(nameof(BaseGameManager.BeginPlay))]
         [HarmonyPostfix]

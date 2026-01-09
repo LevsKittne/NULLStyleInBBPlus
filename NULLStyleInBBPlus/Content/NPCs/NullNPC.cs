@@ -32,15 +32,13 @@ namespace NULL.NPCs {
         public const float ANGER_PER_HIT = 3.5f, ANGER_PER_HIT_TIMES = 3.1f, PAUSE_TIME = 1f, FLASH_TIME = 1.5f;
 
         void SetupPrefab() {
-            ModCache.NullNPC = this;
-            ModCache.NullAudio = GetComponent<AudioManager>();
-
             baseAnger = 0.1f;
             baseSpeed = 5f;
 
+            ModCache.NullAudio = GetComponent<AudioManager>();
             ModCache.NullAudio.ReflectionSetVariable("subtitleColor", Color.white);
             ModCache.NullAudio.ReflectionSetVariable("overrideSubtitleColor", false);
-            ModCache.NullAudio.ignoreListenerPause = false; //true
+            ModCache.NullAudio.ignoreListenerPause = false;
 
             navigator.Initialize(ec);
             navigator.passableObstacles.Add(PassableObstacle.Window);
@@ -55,6 +53,9 @@ namespace NULL.NPCs {
 
             Speaker = new SpeechCheck(this);
             gameObject.AddComponent<Flash>();
+            
+            gameObject.AddComponent<NullRadiance>();
+
             hitSound = !isGlitch ? m.Get<SoundObject>("NullHit") : PixelInternalAPI.Extensions.GenericExtensions.FindResourceObjectByName<SoundObject>("Lose_Buzz");
             endSound = m.Get<SoundObject>("NullEnd");
 
@@ -67,7 +68,16 @@ namespace NULL.NPCs {
                 }
             };
 
-            NullPlusManager.instance.nullNpc = this;
+            if (!isGlitch) {
+                NullPlusManager.instance.nullNpc = this;
+                ModCache.NullNPC = this;
+            }
+            else {
+                if (NullPlusManager.instance.nullNpc == null) {
+                    NullPlusManager.instance.nullNpc = this;
+                    ModCache.NullNPC = this;
+                }
+            }
         }
 
         public override void Initialize() {
@@ -98,11 +108,28 @@ namespace NULL.NPCs {
 
         [HarmonyPatch(typeof(NPC), "WindowHit")]
         internal class NullWindowBreakPatch {
-            private static void Postfix(NPC __instance, Window window) {
+            [HarmonyPrefix]
+            private static bool Prefix(NPC __instance, Window window) {
                 if (__instance is NullNPC nullNpc) {
-                    window.Break(true);
-                    nullNpc.Speaker.SpeechChecker("Hide", 0.04f);
+                    bool isBroken = (bool)AccessTools.Field(typeof(Window), "broken").GetValue(window);
+
+                    if (!isBroken) {
+                        window.Break(true);
+                        nullNpc.Speaker.SpeechChecker("Hide", 0.04f);
+                    }
+
+                    var npcCollider = nullNpc.GetComponent<Collider>();
+                    if (npcCollider != null && window.colliders != null) {
+                        foreach (var winCol in window.colliders) {
+                            if (winCol != null) {
+                                Physics.IgnoreCollision(npcCollider, winCol, true);
+                            }
+                        }
+                    }
+                    
+                    return false;
                 }
+                return true;
             }
         }
 
@@ -119,10 +146,10 @@ namespace NULL.NPCs {
 
         public override void Slap() {
             slapTotal = 0f;
-            slapDistance = nextSlapDistance;
+            slapDistance = nextSlapDistance * 2f;
             nextSlapDistance = 0f;
 
-            var speed = !slideMode ? slapDistance / (Delay * MovementPortion) : ((float)this.ReflectionGetVariable("anger") + baseSpeed + (float)this.ReflectionGetVariable("extraAnger")) * 0.5f;
+            var speed = !slideMode ? slapDistance / (Delay * MovementPortion) : baseSpeed;
 
             navigator.SetSpeed(speed);
         }
