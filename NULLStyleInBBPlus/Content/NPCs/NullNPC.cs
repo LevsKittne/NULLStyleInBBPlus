@@ -4,6 +4,7 @@ using HarmonyLib;
 using MTM101BaldAPI.Reflection;
 using NULL.Content;
 using NULL.CustomComponents;
+using NULL.Manager;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -18,24 +19,28 @@ namespace NULL.NPCs {
         public static int attempts;
         public static float timeSinceExcitingThing;
         public Cell currentCell, previousCell;
-        float flickerDelay, _distance;
+        
+        float flickerDelay, flickerCheckTimer;
+        float _distance;
+        
         List<Cell> lightsToChange = new List<Cell>();
         SoundObject hitSound, endSound;
         public SpeechCheck Speaker { get; private set; }
         public bool Hidden { get => !spriteBase; set => spriteBase.SetActive(!value); }
         public bool isGlitch;
-        public new AudioManager AudMan => GetComponent<AudioManager>();
-
+        
         public const float ANGER_PER_HIT = 3.5f, ANGER_PER_HIT_TIMES = 3.1f, PAUSE_TIME = 1f, FLASH_TIME = 1.5f;
 
         void SetupPrefab() {
+            ModCache.NullNPC = this;
+            ModCache.NullAudio = GetComponent<AudioManager>();
+
             baseAnger = 0.1f;
             baseSpeed = 5f;
 
-            var audMan = GetComponent<AudioManager>();
-            audMan.ReflectionSetVariable("subtitleColor", Color.white);
-            audMan.ReflectionSetVariable("overrideSubtitleColor", false);
-            audMan.ignoreListenerPause = false; //true
+            ModCache.NullAudio.ReflectionSetVariable("subtitleColor", Color.white);
+            ModCache.NullAudio.ReflectionSetVariable("overrideSubtitleColor", false);
+            ModCache.NullAudio.ignoreListenerPause = false; //true
 
             navigator.Initialize(ec);
             navigator.passableObstacles.Add(PassableObstacle.Window);
@@ -85,6 +90,12 @@ namespace NULL.NPCs {
             }
         }
 
+        private void OnDestroy() {
+            if (ModCache.NullNPC == this) {
+                ModCache.Clear();
+            }
+        }
+
         [HarmonyPatch(typeof(NPC), "WindowHit")]
         internal class NullWindowBreakPatch {
             private static void Postfix(NPC __instance, Window window) {
@@ -100,17 +111,18 @@ namespace NULL.NPCs {
             GetComponent<Flash>()?.SetFlash(FLASH_TIME);
             if (pause) this.Pause(PAUSE_TIME);
             GetAngry(IsTimes ? ANGER_PER_HIT_TIMES : ANGER_PER_HIT * val);
-            AudMan.FlushQueue(true);
-            AudMan.QueueAudio(hitSound);
+            ModCache.NullAudio.FlushQueue(true);
+            ModCache.NullAudio.QueueAudio(hitSound);
             if (!BossManager.Instance.BossActive)
-                AudMan.QueueAudio(isGlitch ? "GlitchBossStart" : "Null_PreBoss_Start");
+                ModCache.NullAudio.QueueAudio(isGlitch ? "GlitchBossStart" : "Null_PreBoss_Start");
         }
 
         public override void Slap() {
             slapTotal = 0f;
-            slapDistance = nextSlapDistance/* * 1.5f*/;
+            slapDistance = nextSlapDistance;
             nextSlapDistance = 0f;
-            var speed = !slideMode ? slapDistance / (Delay * MovementPortion) : ((float)this.ReflectionGetVariable("anger") + baseSpeed + (float)this.ReflectionGetVariable("extraAnger"));
+
+            var speed = !slideMode ? slapDistance / (Delay * MovementPortion) : ((float)this.ReflectionGetVariable("anger") + baseSpeed + (float)this.ReflectionGetVariable("extraAnger")) * 0.5f;
 
             navigator.SetSpeed(speed);
         }
@@ -119,18 +131,34 @@ namespace NULL.NPCs {
 
         protected override void VirtualUpdate() {
             base.VirtualUpdate();
-            FlickerLights(!Hidden && !BasePlugin.darkAtmosphere.Value);
+            if (!Hidden && !BasePlugin.darkAtmosphere.Value) {
+                flickerCheckTimer -= Time.deltaTime;
+                if (flickerCheckTimer <= 0f) {
+                    FlickerLights(true);
+                    flickerCheckTimer = 0.15f;
+                }
+            }
         }
 
-        public new float Delay => slapCurve.Evaluate((float)this.ReflectionGetVariable("anger") + (float)this.ReflectionGetVariable("extraAnger")) + 0.4f;
-        public new float Speed => (speedCurve.Evaluate((float)this.ReflectionGetVariable("anger")) + baseSpeed + (float)this.ReflectionGetVariable("extraAnger"));
+        public new float Delay => (slapCurve.Evaluate((float)this.ReflectionGetVariable("anger") + (float)this.ReflectionGetVariable("extraAnger")) + 0.4f) * 2f;
+        public new float Speed => (speedCurve.Evaluate((float)this.ReflectionGetVariable("anger")) + baseSpeed + (float)this.ReflectionGetVariable("extraAnger")) * 0.5f;
 
         public void FlickerLights(bool enable) {
             if (!enable) return;
 
             flickerDelay -= Time.deltaTime * ec.EnvironmentTimeScale;
-            foreach (var cell in lightsToChange) {
+            
+            for (int i = 0; i < lightsToChange.Count; i++) {
+                var cell = lightsToChange[i];
+                if (cell == null) continue;
+
                 _distance = Vector3.Distance(transform.position, cell.TileTransform.position);
+                
+                if (_distance > 110f) {
+                    if (!cell.lightOn) cell.SetLight(true);
+                    continue; 
+                }
+
                 float num = (_distance - 30f) / 70f;
                 if (behaviorStateMachine.currentState.ToString().Contains("Baldi_Attack")) break;
 
@@ -175,7 +203,9 @@ namespace NULL.NPCs {
                 if (BossManager.Instance.BossActive || BossManager.Instance.bossTransitionWaiting) return;
 
                 List<string> genericPhrases = new List<string> { "Bored", "Scary", "Stop", "Wherever" };
-                var audMan = nullNpc.GetComponent<AudioManager>();
+                var audMan = ModCache.NullAudio;
+                
+                if (audMan == null) return;
 
                 void PlayPhrase(string name, bool generic = false) {
                     if (nullNpc.isGlitch) return;

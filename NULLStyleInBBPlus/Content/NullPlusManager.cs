@@ -34,15 +34,23 @@ namespace NULL.Content {
             ec.standardDarkLevel = new Color(0.35f, 0.35f, 0.35f);
 
             HideHuds(false);
-            ec.MakeNoise(Singleton<CoreGameManager>.Instance.GetPlayer(0).transform.position, 127);
-            Bm?.RemoveAllProjectiles();
-            Singleton<CoreGameManager>.Instance.GetHud(0).BaldiTv.gameObject.TryAddComponent<CustomComponents.NullTV>();
+            
+            var player = Singleton<CoreGameManager>.Instance.GetPlayer(0);
+            if (player != null)
+                ec.MakeNoise(player.transform.position, 127);
+                
+            if (BossManager.Instance != null) 
+                BossManager.Instance.RemoveAllProjectiles();
+            
+            var hud = Singleton<CoreGameManager>.Instance.GetHud(0);
+            if (hud != null && hud.BaldiTv != null)
+                hud.BaldiTv.gameObject.TryAddComponent<CustomComponents.NullTV>();
         }
 
         public override void BeginPlay() {
             base.BeginPlay();
 
-            if (BasePlugin.darkAtmosphere.Value)
+            if (BasePlugin.darkAtmosphere.Value && darkAmbience != null)
                 Singleton<MusicManager>.Instance.QueueFile(darkAmbience, true);
 
             Singleton<MusicManager>.Instance.KillMidi();
@@ -59,8 +67,8 @@ namespace NULL.Content {
                 var player = Singleton<CoreGameManager>.Instance.GetPlayer(0);
                 if (player != null) {
                     nullNpc.Hear(player.gameObject, player.transform.position, 127);
-
-                    Singleton<MusicManager>.Instance.MidiPlayer.MPTK_ChannelVolumeSet(9, Mathf.Clamp(1f - (Vector3.Distance(nullNpc.transform.position, player.transform.position) - 75f) / 150f, 0f, 1f));
+                    float vol = Mathf.Clamp(1f - (Vector3.Distance(nullNpc.transform.position, player.transform.position) - 75f) / 150f, 0f, 1f);
+                    Singleton<MusicManager>.Instance.MidiPlayer.MPTK_ChannelVolumeSet(9, vol);
                 }
             }
         }
@@ -95,9 +103,18 @@ namespace NULL.Content {
                 }
             }
 
-            if ((int)this.ReflectionGetVariable("elevatorsClosed") >= 3 && (int)this.ReflectionGetVariable("elevatorsToClose") == 0) {
-                nullNpc.behaviorStateMachine.ChangeState(new NullNPC_Preboss(nullNpc, list[Random.Range(0, list.Count)]));
-                freezeElevators = true;
+            bool isFinalFloor = false;
+            if (Core.sceneObject.nextLevel != null && Core.sceneObject.nextLevel.name == "NULL") {
+                isFinalFloor = true;
+            }
+
+            if (isFinalFloor) {
+                if ((int)this.ReflectionGetVariable("elevatorsClosed") >= 3 && (int)this.ReflectionGetVariable("elevatorsToClose") == 0) {
+                    if (nullNpc != null && list.Count > 0) {
+                        nullNpc.behaviorStateMachine.ChangeState(new NullNPC_Preboss(nullNpc, list[Random.Range(0, list.Count)]));
+                        freezeElevators = true;
+                    }
+                }
             }
         }
 

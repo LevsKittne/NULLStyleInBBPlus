@@ -17,38 +17,63 @@ namespace NULL.Content {
         public int health = BasePlugin.nullHealth.Value;
         public bool bossTransitionWaiting = false, holdBeat = true;
         readonly float initMusSpeed = 0.8f;
-        MusicManager MusMan { get => Singleton<MusicManager>.Instance; }
+        MusicManager MusMan => Singleton<MusicManager>.Instance;
         internal static List<NullProjectile> projectiles = new List<NullProjectile>();
-        internal NullNPC nullNpc => NullPlusManager.instance.nullNpc;
+        internal NullNPC nullNpc => ModCache.NullNPC;
 
         public float currentBossSpeed = 6f;
         public float currentPlayerSpeed = 19f;
 
-        void Start() => Instance = this;
+        void Awake() {
+            Instance = this;
+            ModCache.BossManager = this;
+        }
+
+        void OnDestroy() {
+            if (Instance == this) {
+                Instance = null;
+            }
+        }
 
         void Update() {
             if (BossActive && !bossTransitionWaiting) {
                 if (nullNpc != null) {
-                    nullNpc.baseSpeed = currentBossSpeed;
-                    nullNpc.ReflectionSetVariable("baseSpeed", currentBossSpeed);
-                    if (!nullNpc.slideMode) nullNpc.slideMode = true;
+                    if (!nullNpc.slideMode) {
+                        nullNpc.slideMode = true;
+                    }
                 }
             }
         }
 
-        public void StartBossIntro() {
-            if (!nullNpc.isGlitch) {
-                nullNpc.AudMan.QueueAudio("Null_PreBoss_Intro");
-                nullNpc.AudMan.QueueAudio("Null_PreBoss_Loop", true);
+        public void UpdateBossSpeed() {
+            if (nullNpc != null) {
+                nullNpc.baseSpeed = currentBossSpeed;
+                nullNpc.ReflectionSetVariable("baseSpeed", currentBossSpeed);
             }
-            if (!IsTimes)
+        }
+
+        public void StartBossIntro() {
+            if (nullNpc == null) {
+                return;
+            }
+
+            if (!nullNpc.isGlitch) {
+                ModCache.NullAudio.QueueAudio("Null_PreBoss_Intro");
+                ModCache.NullAudio.QueueAudio("Null_PreBoss_Loop", true);
+            }
+            if (!IsTimes) {
                 nullNpc.GetAngry(-168);
+            }
 
             nullNpc.Pause();
             MusMan.PlayMidi("custom_BossIntro", true);
             MusMan.SetSpeed(initMusSpeed);
             holdBeat = true;
-            pm.itm.enabled = false;
+
+            if (pm != null && pm.itm != null) {
+                pm.itm.enabled = false;
+            }
+
             ClearEffects();
             RemoveAllProjectiles();
             ec.StopAllCoroutines();
@@ -62,33 +87,57 @@ namespace NULL.Content {
         }
 
         public void StartBossFight() {
+            if (nullNpc == null) {
+                return;
+            }
+
             holdBeat = false;
             nullNpc.slideMode = true;
             nullNpc.behaviorStateMachine.ChangeState(new NullNPC_Chase(nullNpc, nullNpc));
             MusMan.PlayMidi("custom_BossLoop", true);
             MusMan.SetSpeed(initMusSpeed + (10 - health) / 10f);
+            UpdateBossSpeed();
         }
 
         public void SpawnProjectiles(int count = 1) {
             for (int i = 0; i < count; i++) {
-                var vector = RandomCellFromHallway.TileTransform.position;
-                var prList = ModManager.m.GetAll<NullProjectile>();
-                var projectile = Instantiate(prList[Random.Range(0, prList.Length)]);
+                try {
+                    Cell spawnCell = RandomCellFromHallway;
+                    if (spawnCell == null) spawnCell = ec.RandomCell(false, false, false);
+                    if (spawnCell == null) return;
 
-                projectile.transform.position = vector;
-                DontDestroyOnLoad(projectile.gameObject);
-                projectile.gameObject.SetActive(true);
+                    var vector = spawnCell.TileTransform.position;
+                    var prList = ModManager.m.GetAll<NullProjectile>();
+                    if (prList.Length > 0) {
+                        var projectile = Instantiate(prList[Random.Range(0, prList.Length)]);
+                        projectile.transform.position = vector;
+                        DontDestroyOnLoad(projectile.gameObject);
+                        projectile.gameObject.SetActive(true);
+                    }
+                }
+                catch (System.Exception ex) {
+                    Debug.LogWarning($"Failed to spawn projectile: {ex.Message}");
+                }
             }
         }
+
         public void SpawnInitialProjectiles(int divider = 3) {
-            for (int i = 0; i < (AllCellsInHall.Count / divider); i++)
-                SpawnProjectiles();
+            int count = AllCellsInHall.Count;
+            if (count > 0) {
+                for (int i = 0; i < (count / divider); i++) {
+                    SpawnProjectiles();
+                }
+            }
         }
+
         public void RemoveAllProjectiles() {
             try {
-                foreach (var projectile in FindObjectsOfType<NullProjectile>())
-                    Destroy(projectile.gameObject);
-
+                var found = FindObjectsOfType<NullProjectile>();
+                foreach (var projectile in found) {
+                    if (projectile != null) {
+                        Destroy(projectile.gameObject);
+                    }
+                }
                 PlayerHasProjectile = false;
             }
             catch { }
@@ -105,35 +154,41 @@ namespace NULL.Content {
                 currentPlayerSpeed = 24f;
 
                 bossTransitionWaiting = true;
-                Singleton<BaseGameManager>.Instance.StartCoroutine(NullPlusManager.AngerGlitch(8.5f));
+                if (Singleton<BaseGameManager>.Instance != null) {
+                    Singleton<BaseGameManager>.Instance.StartCoroutine(NullPlusManager.AngerGlitch(8.5f));
+                }
             }
             else {
-                currentBossSpeed += 0.5f;
+                currentBossSpeed += 0.75f;
                 currentPlayerSpeed += 2f;
             }
 
-            if (nullNpc != null) {
-                nullNpc.baseSpeed = currentBossSpeed;
-                nullNpc.ReflectionSetVariable("baseSpeed", currentBossSpeed);
-            }
+            UpdateBossSpeed();
 
             if (health >= 0) {
                 MusMan.SetSpeed(initMusSpeed + (10 - health) * 0.1f);
-                if (health > 1 && health < 10) MusMan.HangMidi(true, true);
-                if (health < 10) SpawnProjectiles(Mathf.FloorToInt((health - 1) / 3));
+                if (health > 1 && health < 10) {
+                    MusMan.HangMidi(true, true);
+                }
+                if (health < 10) {
+                    SpawnProjectiles(Mathf.FloorToInt((health - 1) / 3));
+                }
 
-                if (health >= 10)
+                if (health >= 10) {
                     SpawnProjectiles(Mathf.FloorToInt((health - 1) / (IsTimes ? 1.25f : 2.5f)));
+                }
             }
 
-            if (health == 1) {
+            if (health == 1 && nullNpc != null) {
                 MusMan.HangMidi(true, true);
                 StartCoroutine(nullNpc.Rage());
             }
 
             if (health <= 0) {
                 BossActive = false;
-                Singleton<BaseGameManager>.Instance.LoadNextLevel();
+                if (Singleton<BaseGameManager>.Instance != null) {
+                    Singleton<BaseGameManager>.Instance.LoadNextLevel();
+                }
                 ClearEffects();
                 ec.StopAllCoroutines();
             }

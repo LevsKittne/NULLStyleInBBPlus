@@ -1,6 +1,5 @@
 ﻿using DevTools.Extensions;
 using MTM101BaldAPI.Reflection;
-using MTM101BaldAPI.SaveSystem;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -111,51 +110,38 @@ namespace DevTools {
         }
 
         public static SceneObject LoadGame(bool setSave = true, bool ignoreSaveFile = false, SceneObject customScene = null) {
-            Debug.Log("CustomScene: " + (customScene != null ? customScene.name : "null"));
-            bool saveAvailable = !ignoreSaveFile && Singleton<ModdedFileManager>.Instance.saveData.saveAvailable;
-
-            GameLoader gameLoader = Resources.FindObjectsOfTypeAll<GameLoader>()
-                                             .FirstOrDefault(x => x.gameObject.scene.IsValid());
-
+            GameLoader gameLoader = Resources.FindObjectsOfTypeAll<GameLoader>().FirstOrDefault(x => x.gameObject.scene.IsValid());
+            
             if (gameLoader == null)
                 gameLoader = Resources.FindObjectsOfTypeAll<GameLoader>().First();
 
             gameLoader.gameObject.SetActive(true);
+            
+            if (Singleton<CoreGameManager>.Instance != null)
+                Destroy(Singleton<CoreGameManager>.Instance.gameObject);
+
             gameLoader.cgmPre = PixelInternalAPI.Extensions.GenericExtensions.FindResourceObject<CoreGameManager>();
-            var scene = customScene ?? Singleton<ModdedFileManager>.Instance.saveData.level;
-
-            if (!saveAvailable) {
-                try {
-                    gameLoader.CheckSeed();
-                }
-                catch (System.NullReferenceException) {
-                    Debug.LogWarning("ExtraVariables: GameLoader.CheckSeed failed (seedInput is null). Defaulting to random seed.");
-                    gameLoader.ReflectionSetVariable("useSeed", false);
-                }
-
-                gameLoader.Initialize(2);
-                gameLoader.SetMode(0);
-            }
-            else {
-                Singleton<ModdedFileManager>.Instance.CreateSavedGameCoreManager(gameLoader);
-                gameLoader.SetMode(0);
-                Singleton<CursorManager>.Instance.LockCursor();
-            }
+            gameLoader.Initialize(2);
+            gameLoader.SetMode(0);
+            
+            Singleton<CoreGameManager>.Instance.SetRandomSeed();
+            Singleton<CursorManager>.Instance.LockCursor();
 
             ElevatorScreen elevatorScreen = (from x in SceneManager.GetActiveScene().GetRootGameObjects()
                                              where x.name == "ElevatorScreen"
                                              select x).First().GetComponent<ElevatorScreen>();
 
-            gameLoader.AssignElevatorScreen(elevatorScreen);
             elevatorScreen.gameObject.SetActive(true);
-            gameLoader.LoadLevel(scene);
+            gameLoader.AssignElevatorScreen(elevatorScreen);
+            
+            if (customScene != null) {
+                gameLoader.LoadLevel(customScene);
+            }
+            
             elevatorScreen.Initialize();
-            gameLoader.SetSave(setSave);
+            gameLoader.SetSave(false);
 
-            if (saveAvailable)
-                Singleton<ModdedFileManager>.Instance.DeleteSavedGame();
-
-            return scene;
+            return customScene;
         }
 
         public static void HideHuds(bool val) {

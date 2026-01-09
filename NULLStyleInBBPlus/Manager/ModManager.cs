@@ -187,72 +187,74 @@ namespace NULL.Manager {
             }
 
             SceneObject[] objs = Resources.FindObjectsOfTypeAll<SceneObject>();
-
             Dictionary<SceneObject, SceneObject> oldToNewMapping_Scenes = new Dictionary<SceneObject, SceneObject>();
 
             foreach (SceneObject obj in objs) {
-                if (!(obj.levelObject is CustomLevelObject))
-                    continue;
+                if (obj.manager.GetType() != typeof(MainGameManager)) continue;
+                if (!(obj.levelObject is CustomLevelObject)) continue;
+
+                string newLevelTitle = "";
+                string newSceneName = "";
+
+                if (obj.name == "MainLevel_1") { newLevelTitle = "N1"; newSceneName = "NULL_F1"; }
+                else if (obj.name == "MainLevel_2") { newLevelTitle = "N2"; newSceneName = "NULL_F2"; }
+                else if (obj.name == "MainLevel_3") { newLevelTitle = "N3"; newSceneName = "NULL_F3"; }
+                else continue;
 
                 var scene = ScriptableObject.CreateInstance<SceneObject>();
                 Dictionary<string, CustomLevelObject> m_nullLevels = new Dictionary<string, CustomLevelObject>();
-                if (obj.manager.GetType() == typeof(MainGameManager)) {
-                    CustomLevelObject nullMain = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(obj.levelObject);
-                    nullMain.name = "NULL_" + obj.levelObject.name;
-                    Register_Internal(nullMain);
-                    nullMain.MarkAsNeverUnload();
-                    m_nullLevels.Add(nullMain.name, nullMain);
 
-                    CustomLevelObject nullMain_NoNpcs = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(nullMain);
-                    nullMain_NoNpcs.name = "NULL_" + obj.levelObject.name + "_NoNpcs";
-                    Register_Internal(nullMain_NoNpcs, false);
-                    nullMain_NoNpcs.MarkAsNeverUnload();
-                    m_nullLevels.Add(nullMain_NoNpcs.name, nullMain_NoNpcs);
+                CustomLevelObject nullMain = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(obj.levelObject);
+                nullMain.name = "NULL_" + obj.levelObject.name;
+                Register_Internal(nullMain);
+                nullMain.MarkAsNeverUnload();
+                m_nullLevels.Add(nullMain.name, nullMain);
 
-                    CustomLevelObject glitchMain = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(nullMain);
-                    glitchMain.name = "GLITCH_" + obj.levelObject.name;
-                    Register_Internal(glitchMain);
-                    glitchMain.MarkAsNeverUnload();
-                    m_nullLevels.Add(glitchMain.name, glitchMain);
+                CustomLevelObject nullMain_NoNpcs = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(nullMain);
+                nullMain_NoNpcs.name = "NULL_" + obj.levelObject.name + "_NoNpcs";
+                Register_Internal(nullMain_NoNpcs, false);
+                nullMain_NoNpcs.MarkAsNeverUnload();
+                m_nullLevels.Add(nullMain_NoNpcs.name, nullMain_NoNpcs);
 
-                    CustomLevelObject glitchMain_NoNpcs = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(nullMain_NoNpcs);
-                    glitchMain_NoNpcs.name = "GLITCH_" + obj.levelObject.name + "_NoNpcs";
-                    Register_Internal(glitchMain_NoNpcs, false);
-                    glitchMain_NoNpcs.MarkAsNeverUnload();
-                    m_nullLevels.Add(glitchMain_NoNpcs.name, glitchMain_NoNpcs);
+                CustomLevelObject glitchMain = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(nullMain);
+                glitchMain.name = "GLITCH_" + obj.levelObject.name;
+                Register_Internal(glitchMain);
+                glitchMain.MarkAsNeverUnload();
+                m_nullLevels.Add(glitchMain.name, glitchMain);
 
-                    scene.manager = m.Get<NullPlusManager>("NullPlusMan");
-                    scene.levelNo = obj.levelNo;
-                    scene.levelObject = nullMain;
+                CustomLevelObject glitchMain_NoNpcs = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(nullMain_NoNpcs);
+                glitchMain_NoNpcs.name = "GLITCH_" + obj.levelObject.name + "_NoNpcs";
+                Register_Internal(glitchMain_NoNpcs, false);
+                glitchMain_NoNpcs.MarkAsNeverUnload();
+                m_nullLevels.Add(glitchMain_NoNpcs.name, glitchMain_NoNpcs);
 
-                    if (System.Text.RegularExpressions.Regex.IsMatch(obj.levelTitle, @"^F\d$")) {
-                        scene.name = "NULL_" + obj.levelTitle;
-                        scene.levelTitle = "N" + obj.levelTitle.Substring(1);
-                    }
+                scene.manager = m.Get<NullPlusManager>("NullPlusMan");
+                scene.levelNo = obj.levelNo;
+                scene.levelObject = nullMain;
+                scene.name = newSceneName;
+                scene.levelTitle = newLevelTitle;
 
-                    scene.shopItems = new WeightedItemObject[] {
-                        new WeightedItemObject() { selection = chalkEraser, weight = 100 }
-                    };
+                scene.shopItems = new WeightedItemObject[] {
+                    new WeightedItemObject() { selection = chalkEraser, weight = 100 }
+                };
 
-                    scene.totalShopItems = obj.totalShopItems;
-                    scene.mapPrice = obj.mapPrice;
+                scene.totalShopItems = obj.totalShopItems;
+                scene.mapPrice = obj.mapPrice;
+                scene.skybox = obj.skybox;
+                scene.usesMap = obj.usesMap;
 
-                    scene.skybox = obj.skybox;
-                    scene.usesMap = obj.usesMap;
-
-                    if (scene.levelObject.name.Contains("_NoNpcs")) {
-                        scene.potentialNPCs = new List<WeightedNPC>();
-                    }
-                    else {
-                        scene.potentialNPCs = new List<WeightedNPC>(obj.potentialNPCs);
-                    }
-
-                    scene.MarkAsNeverUnload();
-                    nullLevels.AddRange(m_nullLevels);
-                    nullScenes.Add(scene);
-
-                    oldToNewMapping_Scenes.Add(obj, scene);
+                if (scene.levelObject.name.Contains("_NoNpcs")) {
+                    scene.potentialNPCs = new List<WeightedNPC>();
                 }
+                else {
+                    scene.potentialNPCs = new List<WeightedNPC>(obj.potentialNPCs);
+                }
+
+                scene.MarkAsNeverUnload();
+                nullLevels.AddRange(m_nullLevels);
+                nullScenes.Add(scene);
+
+                oldToNewMapping_Scenes.Add(obj, scene);
             }
 
             GameObject newObject = new GameObject();
@@ -477,11 +479,21 @@ namespace NULL.Manager {
             endingScene.potentialNPCs = new List<WeightedNPC>();
             endingScene.shopItems = new WeightedItemObject[0];
             endingScene.MarkAsNeverUnload();
+            endingScene.levelNo = 99;
 
             nullScenes.Add(endingScene);
 
-            for (int i = 0; i < nullScenes.Count - 1; i++)
+            nullScenes.Sort((a, b) => {
+                if (a.name == "NULL") return 1;
+                if (b.name == "NULL") return -1;
+                int compareInt = a.levelNo.CompareTo(b.levelNo);
+                if (compareInt != 0) return compareInt;
+                return string.Compare(a.levelTitle, b.levelTitle);
+            });
+
+            for (int i = 0; i < nullScenes.Count - 1; i++) {
                 nullScenes[i].nextLevel = nullScenes[i + 1];
+            }
 
             foreach (var kvp in oldToNewMapping_Scenes) {
                 if (kvp.Key.previousLevels != null && kvp.Key.previousLevels.Length > 0) {

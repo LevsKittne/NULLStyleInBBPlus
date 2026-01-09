@@ -34,7 +34,7 @@ namespace NULL {
 
             Manager.OptionsManager.Register();
 
-            gameObject.AddComponent<DebugManager>();
+            gameObject.AddComponent<DebugManager>(); //for debug
 
             harmony.PatchAllConditionals();
 
