@@ -23,7 +23,7 @@ namespace NULL.Manager {
         public override void Build() {
             ambienceToggle = CreateToggle("AmbienceToggle", "Dark Ambience", ambienceConfig.Value, new Vector3(0f, 75f, 0f), 300f);
             if (ambienceToggle != null) {
-                AddTooltip(ambienceToggle, "There is no lighting in the school. Suspenseful background ambient track plays.");
+                AddTooltip(ambienceToggle, "There is no lighting in the school. Suspenseful background ambient track plays.\n<color=#008000ff>Default is true.");
                 StyleToggleCentered(ambienceToggle, 150f);
                 var btn = ambienceToggle.transform.Find("HotSpot").GetComponent<StandardMenuButton>();
                 btn.OnPress.AddListener(() => {
@@ -34,7 +34,7 @@ namespace NULL.Manager {
 
             charactersToggle = CreateToggle("CharactersToggle", "Other Characters", charactersConfig.Value, new Vector3(0f, 35f, 0f), 300f);
             if (charactersToggle != null) {
-                AddTooltip(charactersToggle, "Oh no! Null called other characters to help!");
+                AddTooltip(charactersToggle, "Oh no! Null called other characters to help!\n<color=#008000ff>Default is false.");
                 StyleToggleCentered(charactersToggle, 150f);
                 var btn = charactersToggle.transform.Find("HotSpot").GetComponent<StandardMenuButton>();
                 btn.OnPress.AddListener(() => {
@@ -45,7 +45,7 @@ namespace NULL.Manager {
 
             resultsTvToggle = CreateToggle("ResultsTvToggle", "Disable Results TV", resultsTvConfig.Value, new Vector3(0f, -5f, 0f), 300f);
             if (resultsTvToggle != null) {
-                AddTooltip(resultsTvToggle, "If enabled, the score screen in the elevator will be hidden and the animation skipped.");
+                AddTooltip(resultsTvToggle, "If enabled, the score screen in the elevator will be hidden and the animation skipped.\n<color=#008000ff>Default is true.");
                 StyleToggleCentered(resultsTvToggle, 150f);
                 var btn = resultsTvToggle.transform.Find("HotSpot").GetComponent<StandardMenuButton>();
                 btn.OnPress.AddListener(() => {
@@ -56,7 +56,7 @@ namespace NULL.Manager {
 
             lightGlitchToggle = CreateToggle("LightGlitchToggle", "Dynamic Lighting", lightGlitchConfig.Value, new Vector3(0f, -45f, 0f), 300f);
             if (lightGlitchToggle != null) {
-                AddTooltip(lightGlitchToggle, "If enabled, lights near the boss will flicker.");
+                AddTooltip(lightGlitchToggle, "If enabled, lights near the boss will flicker.\n<color=#008000ff>Default is true.");
                 StyleToggleCentered(lightGlitchToggle, 150f);
                 var btn = lightGlitchToggle.transform.Find("HotSpot").GetComponent<StandardMenuButton>();
                 btn.OnPress.AddListener(() => {
@@ -67,7 +67,7 @@ namespace NULL.Manager {
 
             gameCrashToggle = CreateToggle("GameCrashToggle", "Game Crash", gameCrashConfig.Value, new Vector3(0f, -85f, 0f), 300f);
             if (gameCrashToggle != null) {
-                AddTooltip(gameCrashToggle, "If enabled, the game will force close when you are caught by NULL.");
+                AddTooltip(gameCrashToggle, "If enabled, the game will force close when you are caught by NULL.\n<color=#008000ff>Default is true.");
                 StyleToggleCentered(gameCrashToggle, 150f);
                 var btn = gameCrashToggle.transform.Find("HotSpot").GetComponent<StandardMenuButton>();
                 btn.OnPress.AddListener(() => {
@@ -83,7 +83,7 @@ namespace NULL.Manager {
                 1, 1000000,
                 "",
                 new Vector3(0f, -125f, 0f),
-                "Click to type custom health value (1-1000000). <color=#008000ff>Default is 10."
+                "Click to type custom health value (1-1000000).\n<color=#008000ff>Default is 10."
             );
         }
         

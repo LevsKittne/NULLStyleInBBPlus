@@ -8,6 +8,7 @@ using MTM101BaldAPI.Registers;
 using NULL.CustomComponents;
 using NULL.Manager.CompatibilityModule;
 using System.IO;
+using UnityEngine;
 
 namespace NULL {
     [BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
@@ -32,14 +33,12 @@ namespace NULL {
 
             characters = Config.Bind("Null Style settings", "Enable another characters", false, "Setting this \"true\" will enable other characters on the floor except Null/Red Baldloon");
             darkAtmosphere = Config.Bind("Null Style settings", "Enable the dark atmosphere", true, "Setting this \"true\" will enable the dark atmosphere, which makes the level darker and more creepy");
-            disableResultsTV = Config.Bind("Null Style settings", "Disable Results TV", true, "If true, the score screen in the elevator will be hidden and the animation skipped.");
-            lightGlitch = Config.Bind("Null Style settings", "Dynamic Lighting", true, "If true, lights near NULL/GLITCH will flicker.");
-            gameCrash = Config.Bind("Null Style settings", "Game Crash", false, "If true, the game will close itself when NULL/GLITCH catches you, simulating a crash.");
+            disableResultsTV = Config.Bind("Null Style settings", "Disable Results TV", false, "If true, the score screen in the elevator will be hidden and the animation skipped.");
+            lightGlitch = Config.Bind("Null Style settings", "Dynamic Lighting", true, "If true, lights near NULL or GLITCH will flicker.");
+            gameCrash = Config.Bind("Null Style settings", "Game Crash", true, "If true, the game will close itself when NULL or GLITCH catches you, simulating a crash.");
             nullHealth = Config.Bind("Null Style settings", "Health", 10, "Setting a custom amount of null's health");
 
             Manager.OptionsManager.Register();
-
-            //gameObject.AddComponent<DebugManager>(); 
 
             harmony.PatchAllConditionals();
             
