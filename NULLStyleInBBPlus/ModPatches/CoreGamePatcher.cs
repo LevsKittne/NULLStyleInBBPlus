@@ -130,7 +130,7 @@ namespace NULL.ModPatches {
         [HarmonyPrefix]
         private static bool EndGame_Prefix(CoreGameManager __instance, Transform player, Baldi baldi) {
             if (baldi.gameObject.name.Contains("NULL")) {
-                bool isFatal = Singleton<BaseGameManager>.Instance.FoundNotebooks >= 2 || BasePlugin.gameCrash.Value;
+                bool isFatal = (Singleton<BaseGameManager>.Instance.FoundNotebooks >= 2 && BasePlugin.gameCrash.Value == true);
                 __instance.StartCoroutine(CrashSequence(__instance, player, baldi, isFatal));
                 return false;
             }
