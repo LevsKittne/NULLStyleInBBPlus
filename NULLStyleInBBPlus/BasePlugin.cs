@@ -5,10 +5,8 @@ using ModdedModesAPI.ModesAPI;
 using MTM101BaldAPI;
 using MTM101BaldAPI.AssetTools;
 using MTM101BaldAPI.Registers;
-using NULL.CustomComponents;
 using NULL.Manager.CompatibilityModule;
 using System.IO;
-using UnityEngine;
 
 namespace NULL {
     [BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
@@ -26,7 +24,7 @@ namespace NULL {
         public static ConfigEntry<bool> lightGlitch;
         public static ConfigEntry<bool> gameCrash;
         public static ConfigEntry<int> nullHealth;
-
+        public static ConfigEntry<bool> extraFloors;
         private void Awake() {
             Manager.ModManager.plug = this;
             ModPath = AssetLoader.GetModPath(this);
@@ -37,6 +35,7 @@ namespace NULL {
             lightGlitch = Config.Bind("Null Style settings", "Dynamic Lighting", true, "If true, lights near NULL or GLITCH will flicker.");
             gameCrash = Config.Bind("Null Style settings", "Game Crash", true, "If true, the game will close itself when NULL or GLITCH catches you, simulating a crash.");
             nullHealth = Config.Bind("Null Style settings", "Health", 10, "Setting a custom amount of null's health");
+            extraFloors = Config.Bind("Null Style settings", "Extra Floors", false, "Adds Floor 4 and Floor 5 to the run (Harder difficulty).");
 
             Manager.OptionsManager.Register();
 
@@ -61,6 +60,6 @@ namespace NULL {
     static class ModInfo {
         public const string ID = "levs_kittne.baldiplus.null";
         public const string NAME = "NULL";
-        public const string VERSION = "1.2.6";
+        public const string VERSION = "1.2.7";
     }
 }

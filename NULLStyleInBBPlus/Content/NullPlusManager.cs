@@ -109,14 +109,14 @@ namespace NULL.Content {
             }
 
             if (isFinalFloor) {
-                if ((int)this.ReflectionGetVariable("elevatorsClosed") >= 3 && (int)this.ReflectionGetVariable("elevatorsToClose") == 0) {
+                if ((int)this.ReflectionGetVariable("elevatorsToClose") == 0) {
                     
                     if (nullNpc == null) {
                         nullNpc = FindObjectOfType<NullNPC>();
                     }
 
                     if (nullNpc != null && list.Count > 0) {
-                        nullNpc.behaviorStateMachine.ChangeState(new NullNPC_Preboss(nullNpc, list[Random.Range(0, list.Count)]));
+                        nullNpc.behaviorStateMachine.ChangeState(new NullNPC_Preboss(nullNpc, list[UnityEngine.Random.Range(0, list.Count)]));
                         freezeElevators = true;
                     }
                     else if (nullNpc == null) {

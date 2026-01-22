@@ -13,12 +13,14 @@ namespace NULL.Manager {
         private ConfigEntry<bool> lightGlitchConfig => BasePlugin.lightGlitch;
         private ConfigEntry<bool> gameCrashConfig => BasePlugin.gameCrash;
         private ConfigEntry<int> healthConfig => BasePlugin.nullHealth;
+        private ConfigEntry<bool> extraFloorsConfig => BasePlugin.extraFloors;
 
         private MenuToggle ambienceToggle;
         private MenuToggle charactersToggle;
         private MenuToggle resultsTvToggle;
         private MenuToggle lightGlitchToggle;
         private MenuToggle gameCrashToggle;
+        private MenuToggle extraFloorsToggle;
 
         public override void Build() {
             ambienceToggle = CreateToggle("AmbienceToggle", "Dark Ambience", ambienceConfig.Value, new Vector3(0f, 75f, 0f), 300f);
@@ -76,13 +78,24 @@ namespace NULL.Manager {
                 });
             }
 
+            extraFloorsToggle = CreateToggle("ExtraFloorsToggle", "Extra Floors (F4 & F5)", extraFloorsConfig.Value, new Vector3(0f, -125f, 0f), 300f);
+            if (extraFloorsToggle != null) {
+                AddTooltip(extraFloorsToggle, "Adds two extra floors (F4 and F5) before the boss fight.\n<color=#008000ff>Default is false.");
+                StyleToggleCentered(extraFloorsToggle, 150f);
+                var btn = extraFloorsToggle.transform.Find("HotSpot").GetComponent<StandardMenuButton>();
+                btn.OnPress.AddListener(() => {
+                    extraFloorsConfig.Value = extraFloorsToggle.Value;
+                    OptionsManager.SaveOptions();
+                });
+            }
+
             CreateClickableTextInt(
                 "HealthBtn",
                 "Health: ",
                 healthConfig,
                 1, 1000000,
                 "",
-                new Vector3(0f, -125f, 0f),
+                new Vector3(0f, -165f, 0f),
                 "Click to type custom health value (1-1000000).\n<color=#008000ff>Default is 10."
             );
         }

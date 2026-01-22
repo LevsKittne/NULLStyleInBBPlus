@@ -153,7 +153,7 @@ namespace NULL.Content {
                 BossActive = true;
                 RemoveAllProjectiles();
 
-                currentBossSpeed = 24f;
+                currentBossSpeed = 24.5f;
                 currentPlayerSpeed = 24f;
 
                 bossTransitionWaiting = true;

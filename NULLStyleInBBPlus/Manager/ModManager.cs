@@ -168,6 +168,9 @@ namespace NULL.Manager {
         }
 
         internal static void LoadScenes() {
+            nullScenes.Clear();
+            nullLevels.Clear();
+
             ItemObject chalkEraser = ItemMetaStorage.Instance.FindByEnum(Items.ChalkEraser).value;
 
             void Register_Internal(CustomLevelObject ld, bool withNpcs = true) {
@@ -186,76 +189,104 @@ namespace NULL.Manager {
                 ld.potentialBaldis = new WeightedNPC[] { new WeightedNPC() { selection = m.Get<NullNPC>(!ld.name.Contains("GLITCH") ? "NULL" : "NULLGLITCH"), weight = 100 } };
             }
 
-            SceneObject[] objs = Resources.FindObjectsOfTypeAll<SceneObject>();
-            Dictionary<SceneObject, SceneObject> oldToNewMapping_Scenes = new Dictionary<SceneObject, SceneObject>();
-
-            foreach (SceneObject obj in objs) {
-                if (obj.manager.GetType() != typeof(MainGameManager)) continue;
-                if (!(obj.levelObject is CustomLevelObject)) continue;
-
-                string newLevelTitle = "";
-                string newSceneName = "";
-
-                if (obj.name == "MainLevel_1") { newLevelTitle = "N1"; newSceneName = "NULL_F1"; }
-                else if (obj.name == "MainLevel_2") { newLevelTitle = "N2"; newSceneName = "NULL_F2"; }
-                else if (obj.name == "MainLevel_3") { newLevelTitle = "N3"; newSceneName = "NULL_F3"; }
-                else continue;
-
+            SceneObject CreateNullScene(SceneObject baseObj, string levelTitle, string sceneNameSuffix, int levelNo, int? notebookCount = null, LevelType? levelType = null) {
                 var scene = ScriptableObject.CreateInstance<SceneObject>();
-                Dictionary<string, CustomLevelObject> m_nullLevels = new Dictionary<string, CustomLevelObject>();
+                
+                CustomLevelObject nullMain = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(baseObj.levelObject);
+                nullMain.name = "NULL_" + baseObj.levelObject.name + "_" + levelTitle;
+                
+                if (notebookCount.HasValue) {
+                    nullMain.minPlots = notebookCount.Value;
+                    nullMain.maxPlots = notebookCount.Value;
+                }
+                if (levelType.HasValue) {
+                    nullMain.type = levelType.Value;
+                }
 
-                CustomLevelObject nullMain = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(obj.levelObject);
-                nullMain.name = "NULL_" + obj.levelObject.name;
                 Register_Internal(nullMain);
                 nullMain.MarkAsNeverUnload();
-                m_nullLevels.Add(nullMain.name, nullMain);
+                if(!nullLevels.ContainsKey(nullMain.name)) nullLevels.Add(nullMain.name, nullMain);
 
                 CustomLevelObject nullMain_NoNpcs = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(nullMain);
-                nullMain_NoNpcs.name = "NULL_" + obj.levelObject.name + "_NoNpcs";
+                nullMain_NoNpcs.name = "NULL_" + baseObj.levelObject.name + "_" + levelTitle + "_NoNpcs";
                 Register_Internal(nullMain_NoNpcs, false);
                 nullMain_NoNpcs.MarkAsNeverUnload();
-                m_nullLevels.Add(nullMain_NoNpcs.name, nullMain_NoNpcs);
+                if(!nullLevels.ContainsKey(nullMain_NoNpcs.name)) nullLevels.Add(nullMain_NoNpcs.name, nullMain_NoNpcs);
 
                 CustomLevelObject glitchMain = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(nullMain);
-                glitchMain.name = "GLITCH_" + obj.levelObject.name;
+                glitchMain.name = "GLITCH_" + baseObj.levelObject.name + "_" + levelTitle;
                 Register_Internal(glitchMain);
                 glitchMain.MarkAsNeverUnload();
-                m_nullLevels.Add(glitchMain.name, glitchMain);
+                if(!nullLevels.ContainsKey(glitchMain.name)) nullLevels.Add(glitchMain.name, glitchMain);
 
                 CustomLevelObject glitchMain_NoNpcs = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(nullMain_NoNpcs);
-                glitchMain_NoNpcs.name = "GLITCH_" + obj.levelObject.name + "_NoNpcs";
+                glitchMain_NoNpcs.name = "GLITCH_" + baseObj.levelObject.name + "_" + levelTitle + "_NoNpcs";
                 Register_Internal(glitchMain_NoNpcs, false);
                 glitchMain_NoNpcs.MarkAsNeverUnload();
-                m_nullLevels.Add(glitchMain_NoNpcs.name, glitchMain_NoNpcs);
+                if(!nullLevels.ContainsKey(glitchMain_NoNpcs.name)) nullLevels.Add(glitchMain_NoNpcs.name, glitchMain_NoNpcs);
 
                 scene.manager = m.Get<NullPlusManager>("NullPlusMan");
-                scene.levelNo = obj.levelNo;
+                scene.levelNo = levelNo;
                 scene.levelObject = nullMain;
-                scene.name = newSceneName;
-                scene.levelTitle = newLevelTitle;
+                scene.name = sceneNameSuffix;
+                scene.levelTitle = levelTitle;
 
                 scene.shopItems = new WeightedItemObject[] {
                     new WeightedItemObject() { selection = chalkEraser, weight = 100 }
                 };
 
-                scene.totalShopItems = obj.totalShopItems;
-                scene.mapPrice = obj.mapPrice;
-                scene.skybox = obj.skybox;
-                scene.usesMap = obj.usesMap;
+                scene.totalShopItems = baseObj.totalShopItems;
+                scene.mapPrice = baseObj.mapPrice;
+                scene.skybox = baseObj.skybox;
+                scene.usesMap = baseObj.usesMap;
 
                 if (scene.levelObject.name.Contains("_NoNpcs")) {
                     scene.potentialNPCs = new List<WeightedNPC>();
                 }
                 else {
-                    scene.potentialNPCs = new List<WeightedNPC>(obj.potentialNPCs);
+                    scene.potentialNPCs = new List<WeightedNPC>(baseObj.potentialNPCs);
                 }
 
                 scene.MarkAsNeverUnload();
-                nullLevels.AddRange(m_nullLevels);
-                nullScenes.Add(scene);
-
-                oldToNewMapping_Scenes.Add(obj, scene);
+                return scene;
             }
+
+            SceneObject[] objs = Resources.FindObjectsOfTypeAll<SceneObject>();
+            Dictionary<SceneObject, SceneObject> oldToNewMapping_Scenes = new Dictionary<SceneObject, SceneObject>();
+            List<SceneObject> createdScenes = new List<SceneObject>();
+
+            foreach (SceneObject obj in objs) {
+                if (obj.manager.GetType() != typeof(MainGameManager)) continue;
+                if (!(obj.levelObject is CustomLevelObject)) continue;
+
+                if (obj.name == "MainLevel_1") { 
+                    var s = CreateNullScene(obj, "N1", "NULL_F1", 0);
+                    createdScenes.Add(s);
+                    oldToNewMapping_Scenes.Add(obj, s);
+                }
+                else if (obj.name == "MainLevel_2") { 
+                    var s = CreateNullScene(obj, "N2", "NULL_F2", 1);
+                    createdScenes.Add(s);
+                    oldToNewMapping_Scenes.Add(obj, s);
+                }
+                else if (obj.name == "MainLevel_3") { 
+                    var s = CreateNullScene(obj, "N3", "NULL_F3", 2);
+                    createdScenes.Add(s);
+                    oldToNewMapping_Scenes.Add(obj, s);
+
+                    if (BasePlugin.extraFloors.Value) {
+                        LevelType randomTypeF4 = (LevelType)UnityEngine.Random.Range(0, 4);
+                        var f4 = CreateNullScene(obj, "N4", "NULL_F4", 3, 7, randomTypeF4);
+                        createdScenes.Add(f4);
+                        
+                        LevelType randomTypeF5 = (LevelType)UnityEngine.Random.Range(0, 4);
+                        var f5 = CreateNullScene(obj, "N5", "NULL_F5", 4, 9, randomTypeF5);
+                        createdScenes.Add(f5);
+                    }
+                }
+            }
+
+            nullScenes.AddRange(createdScenes);
 
             GameObject newObject = new GameObject();
             newObject.SetActive(false);

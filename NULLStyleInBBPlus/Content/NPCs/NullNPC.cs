@@ -431,6 +431,7 @@ namespace NULL.NPCs {
                 base.Enter();
                 nullNpc.slideMode = true;
                 nullNpc.GetAngry(169f);
+                nullNpc.baseSpeed = 100f;
                 nullNpc.Navigator.passableObstacles.Clear();
                 nullNpc.Navigator.passableObstacles.Add(PassableObstacle.Window);
                 nullNpc.behaviorStateMachine.ChangeNavigationState(new NavigationState_TargetPosition(nullNpc, 63, elevatorPos));
@@ -471,8 +472,10 @@ namespace NULL.NPCs {
             nullNpc.Navigator.passableObstacles.Add(PassableObstacle.Window);
             nullNpc.slideMode = true;
 
-            if ((float)nullNpc.ReflectionGetVariable("anger") < 169f)
+            if ((float)nullNpc.ReflectionGetVariable("anger") < 169f) {
                 nullNpc.GetAngry(169f);
+                nullNpc.baseSpeed = 100f;
+            }
 
             nullNpc.behaviorStateMachine.ChangeNavigationState(new NavigationState_TargetPosition(nullNpc, 0, finalElevatorPos + new Vector3(0f, 5f, 0f)));
             nullNpc.Hidden = false;

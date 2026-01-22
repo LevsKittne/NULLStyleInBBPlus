@@ -6,7 +6,6 @@ using System.Collections;
 using UnityEngine;
 
 namespace NULL.Manager.CompatibilityModule {
-
     [CompatPatchBBTimes]
     [HarmonyPatch]
     internal class BBTimesCompat {
@@ -38,10 +37,18 @@ namespace NULL.Manager.CompatibilityModule {
         [HarmonyPatch(typeof(NullPlusManager), "ElevatorClosed")]
         [HarmonyPostfix]
         static void StoreAngerBeforeRage(NullPlusManager __instance) {
+            bool isFinalFloor = false;
+            if (Singleton<CoreGameManager>.Instance.sceneObject.nextLevel != null && 
+                Singleton<CoreGameManager>.Instance.sceneObject.nextLevel.name == "NULL") {
+                isFinalFloor = true;
+            }
+
+            if (!isFinalFloor) return;
+
             int closed = (int)__instance.ReflectionGetVariable("elevatorsClosed");
             int toClose = (int)__instance.ReflectionGetVariable("elevatorsToClose");
 
-            if (closed >= 3 && toClose == 0)
+            if (toClose == 0 && closed > 0)
                 _fixedAnger = (float)__instance.nullNpc.ReflectionGetVariable("anger");
         }
 
