@@ -81,6 +81,12 @@ namespace NULL.Manager {
             TryRunMethod(LoadCaptions);
             if (e) {
                 yield return "Registering NULL & GLITCH for Level Studio...";
+                SafeRegisterEditor();
+            }
+        }
+
+        static void SafeRegisterEditor() {
+            if (Chainloader.PluginInfos.ContainsKey("mtm101.rulerp.baldiplus.levelstudio")) {
                 EditorCompat.Register();
             }
         }
@@ -191,10 +197,10 @@ namespace NULL.Manager {
 
             SceneObject CreateNullScene(SceneObject baseObj, string levelTitle, string sceneNameSuffix, int levelNo, int? notebookCount = null, LevelType? levelType = null) {
                 var scene = ScriptableObject.CreateInstance<SceneObject>();
-                
+
                 CustomLevelObject nullMain = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(baseObj.levelObject);
                 nullMain.name = "NULL_" + baseObj.levelObject.name + "_" + levelTitle;
-                
+
                 if (notebookCount.HasValue) {
                     nullMain.minPlots = notebookCount.Value;
                     nullMain.maxPlots = notebookCount.Value;
@@ -205,25 +211,25 @@ namespace NULL.Manager {
 
                 Register_Internal(nullMain);
                 nullMain.MarkAsNeverUnload();
-                if(!nullLevels.ContainsKey(nullMain.name)) nullLevels.Add(nullMain.name, nullMain);
+                if (!nullLevels.ContainsKey(nullMain.name)) nullLevels.Add(nullMain.name, nullMain);
 
                 CustomLevelObject nullMain_NoNpcs = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(nullMain);
                 nullMain_NoNpcs.name = "NULL_" + baseObj.levelObject.name + "_" + levelTitle + "_NoNpcs";
                 Register_Internal(nullMain_NoNpcs, false);
                 nullMain_NoNpcs.MarkAsNeverUnload();
-                if(!nullLevels.ContainsKey(nullMain_NoNpcs.name)) nullLevels.Add(nullMain_NoNpcs.name, nullMain_NoNpcs);
+                if (!nullLevels.ContainsKey(nullMain_NoNpcs.name)) nullLevels.Add(nullMain_NoNpcs.name, nullMain_NoNpcs);
 
                 CustomLevelObject glitchMain = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(nullMain);
                 glitchMain.name = "GLITCH_" + baseObj.levelObject.name + "_" + levelTitle;
                 Register_Internal(glitchMain);
                 glitchMain.MarkAsNeverUnload();
-                if(!nullLevels.ContainsKey(glitchMain.name)) nullLevels.Add(glitchMain.name, glitchMain);
+                if (!nullLevels.ContainsKey(glitchMain.name)) nullLevels.Add(glitchMain.name, glitchMain);
 
                 CustomLevelObject glitchMain_NoNpcs = ScriptableObjectHelpers.CloneScriptableObject<LevelObject, CustomLevelObject>(nullMain_NoNpcs);
                 glitchMain_NoNpcs.name = "GLITCH_" + baseObj.levelObject.name + "_" + levelTitle + "_NoNpcs";
                 Register_Internal(glitchMain_NoNpcs, false);
                 glitchMain_NoNpcs.MarkAsNeverUnload();
-                if(!nullLevels.ContainsKey(glitchMain_NoNpcs.name)) nullLevels.Add(glitchMain_NoNpcs.name, glitchMain_NoNpcs);
+                if (!nullLevels.ContainsKey(glitchMain_NoNpcs.name)) nullLevels.Add(glitchMain_NoNpcs.name, glitchMain_NoNpcs);
 
                 scene.manager = m.Get<NullPlusManager>("NullPlusMan");
                 scene.levelNo = levelNo;
@@ -259,26 +265,29 @@ namespace NULL.Manager {
                 if (obj.manager.GetType() != typeof(MainGameManager)) continue;
                 if (!(obj.levelObject is CustomLevelObject)) continue;
 
-                if (obj.name == "MainLevel_1") { 
+                if (obj.name == "MainLevel_1") {
                     var s = CreateNullScene(obj, "N1", "NULL_F1", 0);
                     createdScenes.Add(s);
                     oldToNewMapping_Scenes.Add(obj, s);
                 }
-                else if (obj.name == "MainLevel_2") { 
+                else if (obj.name == "MainLevel_2") {
                     var s = CreateNullScene(obj, "N2", "NULL_F2", 1);
                     createdScenes.Add(s);
                     oldToNewMapping_Scenes.Add(obj, s);
+
+                    if (BasePlugin.extraFloors.Value)
+                    {
+                        LevelType randomTypeF4 = (LevelType)UnityEngine.Random.Range(0, 4);
+                        var f4 = CreateNullScene(obj, "N4", "NULL_F4", 3, 7, randomTypeF4);
+                        createdScenes.Add(f4);
+                    }
                 }
-                else if (obj.name == "MainLevel_3") { 
+                else if (obj.name == "MainLevel_3") {
                     var s = CreateNullScene(obj, "N3", "NULL_F3", 2);
                     createdScenes.Add(s);
                     oldToNewMapping_Scenes.Add(obj, s);
 
                     if (BasePlugin.extraFloors.Value) {
-                        LevelType randomTypeF4 = (LevelType)UnityEngine.Random.Range(0, 4);
-                        var f4 = CreateNullScene(obj, "N4", "NULL_F4", 3, 7, randomTypeF4);
-                        createdScenes.Add(f4);
-                        
                         LevelType randomTypeF5 = (LevelType)UnityEngine.Random.Range(0, 4);
                         var f5 = CreateNullScene(obj, "N5", "NULL_F5", 4, 9, randomTypeF5);
                         createdScenes.Add(f5);

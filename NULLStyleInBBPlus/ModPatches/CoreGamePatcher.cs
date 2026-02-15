@@ -34,7 +34,8 @@ namespace NULL.ModPatches {
                 Core.Pause(false);
                 nullNpc.transform.position = pm.transform.position + pm.transform.forward * 2f;
                 nullNpc.transform.LookAt(pm.transform);
-                Singleton<CoreGameManager>.Instance.StartCoroutine(CrashSequence(Singleton<CoreGameManager>.Instance, pm.transform, nullNpc, true));
+                
+                Singleton<CoreGameManager>.Instance.StartCoroutine(CrashSequence(Singleton<CoreGameManager>.Instance, pm.transform, nullNpc, BasePlugin.gameCrash.Value));
                 return false;
             }
 

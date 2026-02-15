@@ -178,7 +178,8 @@ namespace NULL.Content {
                 }
 
                 if (health >= 10) {
-                    SpawnProjectiles(Mathf.FloorToInt((health - 1) / (IsTimes ? 1.25f : 2.5f)));
+                    int projCount = Mathf.FloorToInt((health - 1) / (IsTimes ? 1.25f : 2.5f));
+                    SpawnProjectiles(Mathf.Clamp(projCount, 1, 12));
                 }
             }
 

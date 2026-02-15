@@ -75,8 +75,7 @@ namespace NULL.Content {
 
         public override void CollectNotebook(Notebook notebook) {
             base.CollectNotebook(notebook);
-            if (BasePlugin.darkAtmosphere.Value)
-                ec.MakeNoise(notebook.transform.position, 69);
+            ec.MakeNoise(notebook.transform.position, 69);
         }
 
         public override void LoadNextLevel() {

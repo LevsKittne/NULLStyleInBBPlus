@@ -146,10 +146,10 @@ namespace NULL.NPCs {
 
         public override void Slap() {
             slapTotal = 0f;
-            slapDistance = nextSlapDistance * 2f;
+            slapDistance = nextSlapDistance * 6f; 
             nextSlapDistance = 0f;
 
-            var speed = !slideMode ? slapDistance / (Delay * MovementPortion) : baseSpeed;
+            var speed = !slideMode ? slapDistance / (Delay * 0.1f) : baseSpeed;
 
             navigator.SetSpeed(speed);
         }
@@ -167,7 +167,8 @@ namespace NULL.NPCs {
             }
         }
 
-        public new float Delay => (slapCurve.Evaluate((float)this.ReflectionGetVariable("anger") + (float)this.ReflectionGetVariable("extraAnger")) + 0.4f) * 2f;
+        public new float Delay => (slapCurve.Evaluate((float)this.ReflectionGetVariable("anger") + (float)this.ReflectionGetVariable("extraAnger")) + 0.5f);
+        
         public new float Speed => (speedCurve.Evaluate((float)this.ReflectionGetVariable("anger")) + baseSpeed + (float)this.ReflectionGetVariable("extraAnger")) * 0.5f;
 
         public void FlickerLights(bool enable) {
@@ -432,6 +433,7 @@ namespace NULL.NPCs {
                 nullNpc.slideMode = true;
                 nullNpc.GetAngry(169f);
                 nullNpc.baseSpeed = 100f;
+                nullNpc.Navigator.SetSpeed(100f);
                 nullNpc.Navigator.passableObstacles.Clear();
                 nullNpc.Navigator.passableObstacles.Add(PassableObstacle.Window);
                 nullNpc.behaviorStateMachine.ChangeNavigationState(new NavigationState_TargetPosition(nullNpc, 63, elevatorPos));
@@ -476,6 +478,7 @@ namespace NULL.NPCs {
                 nullNpc.GetAngry(169f);
                 nullNpc.baseSpeed = 100f;
             }
+            nullNpc.Navigator.SetSpeed(100f);
 
             nullNpc.behaviorStateMachine.ChangeNavigationState(new NavigationState_TargetPosition(nullNpc, 0, finalElevatorPos + new Vector3(0f, 5f, 0f)));
             nullNpc.Hidden = false;
