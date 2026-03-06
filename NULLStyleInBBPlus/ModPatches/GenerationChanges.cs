@@ -65,22 +65,28 @@ namespace NULL.ModPatches {
             var nullNpc = ModManager.m.Get<NullNPC>("NULL");
             var glitchNpc = ModManager.m.Get<NullNPC>("NULLGLITCH");
 
-            if (nullNpc != null && glitchNpc != null) {
-                List<NPC> forcedList = ld.forcedNpcs != null ? new List<NPC>(ld.forcedNpcs) : new List<NPC>();
+            List<NPC> forcedList = ld.forcedNpcs != null ? new List<NPC>(ld.forcedNpcs) : new List<NPC>();
 
-                if (ModManager.DoubleTrouble) {
-                    ld.potentialBaldis = new WeightedNPC[0]; 
-                    if (!forcedList.Exists(x => x.name == "NULL")) forcedList.Add(nullNpc);
-                    if (!forcedList.Exists(x => x.name == "NULLGLITCH")) forcedList.Add(glitchNpc);
-                }
-                else if (ModManager.NullStyle) {
-                    var target = ModManager.GlitchStyle ? glitchNpc : nullNpc;
-                    ld.potentialBaldis = new WeightedNPC[] { new WeightedNPC() { selection = target, weight = 100 } };
-                    
-                    if (!NULL.BasePlugin.characters.Value) forcedList.Clear();
-                }
-                ld.forcedNpcs = forcedList.ToArray();
+            if (ModManager.DoubleTrouble) {
+                if (nullNpc != null && !forcedList.Exists(x => x.name == "NULL")) forcedList.Add(nullNpc);
+                if (glitchNpc != null && !forcedList.Exists(x => x.name == "NULLGLITCH")) forcedList.Add(glitchNpc);
             }
+            else if (ModManager.NullStyle) {
+                var target = ModManager.GlitchStyle ? glitchNpc : nullNpc;
+                
+                if (target != null) {
+                    if (!forcedList.Contains(target)) forcedList.Add(target);
+                    
+                    if (!NULL.BasePlugin.characters.Value) {
+                        forcedList.Clear();
+                        forcedList.Add(target);
+                    }
+                } else {
+                    Debug.LogError("NULL: Target NPC prefab is null during generation!");
+                }
+            }
+            
+            ld.forcedNpcs = forcedList.ToArray();
 
             if (ld.standardHallBuilders != null) {
                 ld.standardHallBuilders = ld.standardHallBuilders

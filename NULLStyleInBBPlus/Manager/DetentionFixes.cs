@@ -15,7 +15,8 @@ namespace NULL.ModPatches.Fixes {
             string[] targetNames = new string[] {
                 "DetentionTimer",
                 "DigitalClock",
-                "DigitalClock_1"
+                "DigitalClock_1",
+                "ActivityExteriorSign_NoActivity"
             };
             var allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
             foreach (var obj in allObjects) {

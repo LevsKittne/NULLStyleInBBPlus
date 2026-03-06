@@ -6,8 +6,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using static UnityEngine.Object;
 
-namespace DevTools {
-    public static class ExtraVariables {
+namespace DevTools
+{
+    public static class ExtraVariables
+    {
         public static EnvironmentController ec => Singleton<BaseGameManager>.Instance.Ec;
         public static PlayerManager pm => Singleton<CoreGameManager>.Instance.GetPlayer(0);
         public static MovementModifier stopMod;
@@ -18,15 +20,19 @@ namespace DevTools {
         public static bool AllNotebooks { get => (bool)Singleton<BaseGameManager>.Instance.ReflectionGetVariable("allNotebooksFound"); }
         public static int CurrentFloor { get => Singleton<CoreGameManager>.Instance.sceneObject.levelNo; }
         public static IntVector2 LevelCenter { get => new IntVector2(ec.levelSize.x / 2, ec.levelSize.z / 2); }
-        public static List<Cell> AllCellsInHall {
-            get {
+        public static List<Cell> AllCellsInHall
+        {
+            get
+            {
                 var res = ec.mainHall.AllTilesNoGarbage(false, false);
                 return res.Count > 0 ? res : ec.AllTilesNoGarbage(false, false);
             }
         }
         public static Cell RandomCell { get => ec.RandomCell(false, false, false); }
-        public static Cell RandomCellFromHallway {
-            get {
+        public static Cell RandomCellFromHallway
+        {
+            get
+            {
                 var a = AllCellsInHall;
                 return a[Random.Range(0, a.Count)];
             }
@@ -40,7 +46,8 @@ namespace DevTools {
         }
 
         public static void ClearEffects() {
-            try {
+            try
+            {
                 var fogs = (List<Fog>)ec.ReflectionGetVariable("fogs");
                 foreach (var fog in fogs) ec.RemoveFog(fog);
                 foreach (var gum in FindObjectsOfType<Gum>()) gum.Cut();
@@ -63,12 +70,17 @@ namespace DevTools {
         }
 
         public static void ForceCloseAllElevators() {
-            var bgm = Singleton<BaseGameManager>.Instance;
-            foreach (var elevator in ec.elevators) {
-                elevator.Close();
-                elevator.Door.Shut();
-                bgm.ReflectionSetVariable("elevatorsClosed", (int)bgm.ReflectionGetVariable("elevatorsClosed") + 1);
-                bgm.ReflectionSetVariable("elevatorsToClose", (int)bgm.ReflectionGetVariable("elevatorsToClose") - 1);
+            if (ec.ElevatorManager != null)
+            {
+                ec.ElevatorManager.SetAllElevators(ElevatorState.Closed);
+
+                foreach (var elevator in ec.Elevators)
+                {
+                    if (elevator.Door != null)
+                    {
+                        elevator.Door.Shut();
+                    }
+                }
             }
         }
 
@@ -86,7 +98,8 @@ namespace DevTools {
             int lives = (int)Core.ReflectionGetVariable("lives");
             int extraLives = (int)Core.ReflectionGetVariable("extraLives");
 
-            if (lives < 1 && extraLives < 1) {
+            if (lives < 1 && extraLives < 1)
+            {
                 Singleton<GlobalCam>.Instance.SetListener(true);
                 Singleton<CoreGameManager>.Instance.ReturnToMenu();
                 return;
@@ -101,7 +114,8 @@ namespace DevTools {
         }
         public static void PausePlayer(bool val) {
             Singleton<CoreGameManager>.Instance.disablePause = val;
-            if (val) {
+            if (val)
+            {
                 pm.Am.moveMods.Add(stopMod);
                 pm.itm.enabled = false;
                 return;
@@ -111,19 +125,19 @@ namespace DevTools {
 
         public static SceneObject LoadGame(bool setSave = true, bool ignoreSaveFile = false, SceneObject customScene = null) {
             GameLoader gameLoader = Resources.FindObjectsOfTypeAll<GameLoader>().FirstOrDefault(x => x.gameObject.scene.IsValid());
-            
+
             if (gameLoader == null)
                 gameLoader = Resources.FindObjectsOfTypeAll<GameLoader>().First();
 
             gameLoader.gameObject.SetActive(true);
-            
+
             if (Singleton<CoreGameManager>.Instance != null)
                 Destroy(Singleton<CoreGameManager>.Instance.gameObject);
 
             gameLoader.cgmPre = PixelInternalAPI.Extensions.GenericExtensions.FindResourceObject<CoreGameManager>();
             gameLoader.Initialize(2);
             gameLoader.SetMode(0);
-            
+
             Singleton<CoreGameManager>.Instance.SetRandomSeed();
             Singleton<CursorManager>.Instance.LockCursor();
 
@@ -133,11 +147,12 @@ namespace DevTools {
 
             elevatorScreen.gameObject.SetActive(true);
             gameLoader.AssignElevatorScreen(elevatorScreen);
-            
-            if (customScene != null) {
+
+            if (customScene != null)
+            {
                 gameLoader.LoadLevel(customScene);
             }
-            
+
             elevatorScreen.Initialize();
             gameLoader.SetSave(false);
 

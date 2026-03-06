@@ -1,4 +1,5 @@
-﻿using DevTools.Extensions;
+﻿using DevTools;
+using DevTools.Extensions;
 using MidiPlayerTK;
 using MTM101BaldAPI.Reflection;
 using NULL.Manager;
@@ -24,20 +25,18 @@ namespace NULL.Content {
                 new GameObject("BossManager").AddComponent<BossManager>();
 
             base.Initialize();
-            ec.SpawnNPCs();
-            ec.StartEventTimers();
+            Ec.StartEventTimers();
 
             if (BasePlugin.darkAtmosphere.Value) {
-                foreach (var cell in ec.AllCells()) cell.SetLight(false);
+                foreach (var cell in Ec.AllCells()) cell.SetLight(false);
                 Shader.SetGlobalColor("_SkyboxColor", Color.black);
             }
-            ec.standardDarkLevel = new Color(0.35f, 0.35f, 0.35f);
-
+            Ec.standardDarkLevel = new Color(0.35f, 0.35f, 0.35f);
             HideHuds(false);
             
             var player = Singleton<CoreGameManager>.Instance.GetPlayer(0);
             if (player != null)
-                ec.MakeNoise(player.transform.position, 127);
+                Ec.MakeNoise(player.transform.position, 127);
                 
             if (BossManager.Instance != null) 
                 BossManager.Instance.RemoveAllProjectiles();
@@ -49,16 +48,14 @@ namespace NULL.Content {
 
         public override void BeginPlay() {
             base.BeginPlay();
-
             if (BasePlugin.darkAtmosphere.Value && darkAmbience != null)
                 Singleton<MusicManager>.Instance.QueueFile(darkAmbience, true);
-
             Singleton<MusicManager>.Instance.KillMidi();
         }
 
-        protected override void VirtualUpdate() {
+       protected override void VirtualUpdate() {
             base.VirtualUpdate();
-            if (Bm == null || ec == null || nullNpc == null) return;
+            if (Bm == null || Ec == null || nullNpc == null) return;
 
             if (Bm.BossActive) {
                 if (!Singleton<MusicManager>.Instance.MidiPlaying && Bm.holdBeat && !Bm.bossTransitionWaiting && !Core.Paused)
@@ -66,8 +63,14 @@ namespace NULL.Content {
 
                 var player = Singleton<CoreGameManager>.Instance.GetPlayer(0);
                 if (player != null) {
-                    nullNpc.Hear(player.gameObject, player.transform.position, 127);
-                    float vol = Mathf.Clamp(1f - (Vector3.Distance(nullNpc.transform.position, player.transform.position) - 75f) / 150f, 0f, 1f);
+                    var allNulls = FindObjectsOfType<NullNPC>();
+                    float minDistance = 150f;
+                    foreach (var n in allNulls) {
+                        n.Hear(player.gameObject, player.transform.position, 127);
+                        float dist = Vector3.Distance(n.transform.position, player.transform.position);
+                        if (dist < minDistance) minDistance = dist;
+                    }
+                    float vol = Mathf.Clamp(1f - (minDistance - 75f) / 150f, 0f, 1f);
                     Singleton<MusicManager>.Instance.MidiPlayer.MPTK_ChannelVolumeSet(9, vol);
                 }
             }
@@ -75,7 +78,7 @@ namespace NULL.Content {
 
         public override void CollectNotebook(Notebook notebook) {
             base.CollectNotebook(notebook);
-            ec.MakeNoise(notebook.transform.position, 69);
+            Ec.MakeNoise(notebook.transform.position, 69);
         }
 
         public override void LoadNextLevel() {
@@ -90,38 +93,58 @@ namespace NULL.Content {
             Singleton<AdditiveSceneManager>.Instance.LoadScene("Game");
         }
 
-        protected override void ElevatorClosed(Elevator elevator) {
-            base.ElevatorClosed(elevator);
-
-            var list = new List<Elevator>();
-            list.AddRange(ec.elevators);
-            for (int i = 0; i < list.Count; i++) {
-                if (!list[i].IsOpen) {
-                    list.RemoveAt(i);
-                    i--;
+        public override void ExitedSpawn() {
+            Ec.SpawnNPCs(); 
+            var foundNull = FindObjectOfType<NullNPC>();
+            if (foundNull != null) {
+                this.nullNpc = foundNull;
+                ModCache.NullNPC = foundNull;
+                if (Ec.CellFromPosition(foundNull.transform.position).Null) {
+                    var safeCell = Ec.RandomCell(false, false, false); 
+                    if (safeCell != null) {
+                        Vector3 safePos = safeCell.TileTransform.position + Vector3.up * 5f;
+                        foundNull.transform.position = safePos;
+                        foundNull.GetComponent<Navigator>().Entity.Teleport(safePos);
+                    }
                 }
             }
+            base.ExitedSpawn();
+        }
 
-            bool isFinalFloor = false;
-            if (Core.sceneObject.nextLevel != null && Core.sceneObject.nextLevel.name == "NULL") {
-                isFinalFloor = true;
-            }
+        public void CheckBossTrigger() {
+            if (freezeElevators) return;
 
-            if (isFinalFloor) {
-                if ((int)this.ReflectionGetVariable("elevatorsToClose") == 0) {
-                    
-                    if (nullNpc == null) {
-                        nullNpc = FindObjectOfType<NullNPC>();
-                    }
+            bool isFinalFloor = Core.sceneObject.nextLevel != null && Core.sceneObject.nextLevel.name == "NULL";
+            if (!isFinalFloor) return;
 
-                    if (nullNpc != null && list.Count > 0) {
-                        nullNpc.behaviorStateMachine.ChangeState(new NullNPC_Preboss(nullNpc, list[UnityEngine.Random.Range(0, list.Count)]));
-                        freezeElevators = true;
+            var elevatorManager = Ec.ElevatorManager;
+            var brokenElevators = (List<Elevator>)elevatorManager.ReflectionGetVariable("brokenElevators");
+            int foundBroken = (int)elevatorManager.ReflectionGetVariable("foundOutOfOrderElevators");
+            int totalToBreak = elevatorManager.TotalOutOfOrderElevators;
+
+            if (foundBroken >= totalToBreak) {
+                Elevator targetElevator = null;
+                float minDistance = float.MaxValue;
+                Vector3 playerPos = Singleton<CoreGameManager>.Instance.GetPlayer(0).transform.position;
+
+                foreach (var el in elevatorManager.Elevators) {
+                    if (!el.IsSpawn && !brokenElevators.Contains(el)) {
+                        float d = Vector3.Distance(playerPos, el.transform.position);
+                        if (d < minDistance) {
+                            minDistance = d;
+                            targetElevator = el;
+                        }
                     }
-                    else if (nullNpc == null) {
-                        Debug.LogError("NULL NPC not found! Skipping boss fight.");
-                        Singleton<BaseGameManager>.Instance.LoadNextLevel();
+                }
+
+                if (targetElevator != null) {
+                    freezeElevators = true;
+                    var allNulls = Object.FindObjectsOfType<NullNPC>();
+                    foreach (var n in allNulls) {
+                        n.Pause(0f);
+                        n.behaviorStateMachine.ChangeState(new NullNPC_Preboss(n, targetElevator));
                     }
+                    Debug.Log("NULL: Heading to elevator at " + targetElevator.transform.position);
                 }
             }
         }
@@ -133,7 +156,6 @@ namespace NULL.Content {
 
         void MidiEvent(MPTKEvent midiEvent) {
             if (Bm == null) return;
-
             if (Bm.BossActive && !Bm.holdBeat && midiEvent.Command == MPTKCommand.MetaEvent && midiEvent.Meta == MPTKMeta.TextEvent) {
                 if (glitchVal <= 0f) StartCoroutine(UnGlitch());
                 glitchVal = 1f;

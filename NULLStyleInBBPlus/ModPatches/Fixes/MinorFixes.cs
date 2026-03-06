@@ -50,6 +50,14 @@ namespace NULL.ModPatches.Fixes {
             __instance.GetHud(0).Hide(false);
         }
 
+        [HarmonyPatch(typeof(ElevatorManager), "PlayerBrokeElevator")]
+        [HarmonyPostfix]
+        static void CheckElevatorsForBoss() {
+            if (NullPlusManager.instance != null) {
+                NullPlusManager.instance.CheckBossTrigger();
+            }
+        }
+
         [ConditionalPatchNULL]
         [HarmonyPatch(typeof(BaldiTV))]
         internal class BaldiTVFixes {

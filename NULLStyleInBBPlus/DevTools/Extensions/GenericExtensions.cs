@@ -255,7 +255,9 @@ namespace DevTools.Extensions {
 
         public static SceneObject SetLevel(this SceneObject scene, LevelObject ld) {
             scene.levelObject = ld;
-            scene.additionalNPCs = ld.additionalNPCs;
+            if (ld.name.Contains("_NoNpcs")) {
+                scene.additionalNPCs = 0;
+            }
             return scene;
         }
     }

@@ -38,7 +38,6 @@ namespace DevTools.Patches {
                     rope.Destroy();
                 return;
             }
-
         }
 
         [HarmonyPatch(typeof(Chalkboard), "Update")]

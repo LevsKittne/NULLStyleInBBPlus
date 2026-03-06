@@ -3,6 +3,7 @@ using DevTools.Extensions;
 using HarmonyLib;
 using MTM101BaldAPI.Reflection;
 using NULL.Content;
+using NULL.CustomComponents;
 using NULL.Manager;
 using System.Collections;
 using UnityEngine;
@@ -17,6 +18,8 @@ namespace NULL.ModPatches {
         static void ReturnToMenu_Fix() {
             ModManager.NullStyle = false;
             Reset();
+            var remainingProjectiles = Object.FindObjectsOfType<NullProjectile>();
+            foreach (var p in remainingProjectiles) Object.Destroy(p.gameObject);
             BossManager.Instance?.RemoveAllProjectiles();
             Singleton<MusicManager>.Instance.KillMidi();
             try {

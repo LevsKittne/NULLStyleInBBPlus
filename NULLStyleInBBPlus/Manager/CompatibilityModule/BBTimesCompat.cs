@@ -2,6 +2,7 @@
 using HarmonyLib;
 using MTM101BaldAPI.Reflection;
 using NULL.Content;
+using NULL.NPCs;
 using System.Collections;
 using UnityEngine;
 
@@ -12,7 +13,6 @@ namespace NULL.Manager.CompatibilityModule {
         internal static float _fixedAnger;
         internal static Coroutine angerCoroutine;
         public class CompatPatchBBTimes : ConditionalPatchNULL { public override bool ShouldPatch() => base.ShouldPatch() && Plugins.IsTimes; }
-
         [HarmonyPatch(typeof(MonoBehaviour), nameof(MonoBehaviour.StartCoroutine), new[] { typeof(IEnumerator) })]
         [HarmonyPostfix]
         static void GetAngerCoroutine(IEnumerator routine, Coroutine __result) {
@@ -23,8 +23,8 @@ namespace NULL.Manager.CompatibilityModule {
         [HarmonyPatch(typeof(BossManager), nameof(BossManager.StartBossIntro))]
         [HarmonyPrefix]
         static void OnStartBossIntro(BossManager __instance) {
-            var n = __instance.nullNpc;
-            if (n != null) {
+            var allNulls = Object.FindObjectsOfType<NullNPC>();
+            foreach (var n in allNulls) {
                 try {
                     n.StopCoroutine(angerCoroutine);
                 }
@@ -34,11 +34,11 @@ namespace NULL.Manager.CompatibilityModule {
             Singleton<MusicManager>.Instance.StopFile();
         }
 
-        [HarmonyPatch(typeof(NullPlusManager), "ElevatorClosed")]
+        [HarmonyPatch(typeof(NullPlusManager), "OnElevatorClosed")]
         [HarmonyPostfix]
         static void StoreAngerBeforeRage(NullPlusManager __instance) {
             bool isFinalFloor = false;
-            if (Singleton<CoreGameManager>.Instance.sceneObject.nextLevel != null && 
+            if (Singleton<CoreGameManager>.Instance.sceneObject.nextLevel != null &&
                 Singleton<CoreGameManager>.Instance.sceneObject.nextLevel.name == "NULL") {
                 isFinalFloor = true;
             }

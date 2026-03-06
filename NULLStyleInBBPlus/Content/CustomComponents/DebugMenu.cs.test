@@ -1,0 +1,46 @@
+﻿using NULL.Content;
+using UnityEngine;
+using DevTools;
+
+namespace NULLStyleInBBPlus.Content.CustomComponents {
+    public class DebugMenu : MonoBehaviour {
+        private bool showMenu = false;
+        private Rect windowRect = new Rect(20, 20, 300, 400);
+
+        void Update() {
+            if (Input.GetKeyDown(KeyCode.F1)) {
+                showMenu = !showMenu;
+                if (showMenu) {
+                    Singleton<CursorManager>.Instance.UnlockCursor();
+                }
+                else {
+                    Singleton<CursorManager>.Instance.LockCursor();
+                }
+            }
+        }
+
+        void OnGUI() {
+            if (showMenu) {
+                GUI.backgroundColor = Color.black;
+                GUI.contentColor = Color.white;
+                windowRect = GUI.Window(6969, windowRect, DrawMenu, "NULL Debug Menu");
+            }
+        }
+
+        void DrawMenu(int windowID) {
+            if (GUILayout.Button("Выдать Блокнот")) {
+                NullPlusManager.instance.CollectNotebooks(1);
+            }
+            if (GUILayout.Button("Выдать След этаж")) {
+                NullPlusManager.instance.LoadNextLevel();
+            }
+            GUILayout.Space(5);
+            if (GUILayout.Button("Заморозить на 10 секунд")) {
+                if (NullPlusManager.instance != null && NullPlusManager.instance.nullNpc != null) {
+                    NullPlusManager.instance.nullNpc.Pause(10f);
+                }
+            }
+            GUI.DragWindow();
+        }
+    }
+}

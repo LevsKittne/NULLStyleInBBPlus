@@ -71,22 +71,15 @@ namespace NULL.Manager {
         internal static Dictionary<string, CustomLevelObject> nullLevels = new Dictionary<string, CustomLevelObject>();
 
         internal static IEnumerator LoadContent() {
-            bool e = Plugins.IsEditor;
-            yield return e ? 4 : 3;
+            yield return Plugins.IsEditor ? 4 : 3;
             yield return "Loading assets...";
             TryRunMethod(LoadAssets);
             yield return "Creating NPCs...";
             TryRunMethod(CreateNPCs);
             yield return "Loading captions...";
             TryRunMethod(LoadCaptions);
-            if (e) {
+            if (Plugins.IsEditor) {
                 yield return "Registering NULL & GLITCH for Level Studio...";
-                SafeRegisterEditor();
-            }
-        }
-
-        static void SafeRegisterEditor() {
-            if (Chainloader.PluginInfos.ContainsKey("mtm101.rulerp.baldiplus.levelstudio")) {
                 EditorCompat.Register();
             }
         }
@@ -115,7 +108,7 @@ namespace NULL.Manager {
 
             pr.ConvertToPrefab(true);
             m.Add(pr.name, pr.GetComponent<NullProjectile>());
-            BossManager.projectiles.Add(pr.GetComponent<NullProjectile>());
+            //BossManager.projectiles.Add(pr.GetComponent<NullProjectile>());
 
             pr = Instantiate(Utils.FindResourceObjectWithName<GameObject>("Plant"));
 
@@ -127,7 +120,7 @@ namespace NULL.Manager {
             pr.AddComponent<NullProjectile>();
             pr.ConvertToPrefab(true);
             m.Add(pr.name, pr.GetComponent<NullProjectile>());
-            BossManager.projectiles.Add(pr.GetComponent<NullProjectile>());
+            //BossManager.projectiles.Add(pr.GetComponent<NullProjectile>());
 
             pr = new GameObject(prefix + "Chair");
             spriteBase = Instantiate(Utils.FindResourceObjectWithName<GameObject>("Chair_Test"));
@@ -144,15 +137,17 @@ namespace NULL.Manager {
             pr.AddComponent<NullProjectile>();
             pr.ConvertToPrefab(true);
             m.Add(pr.name, pr.GetComponent<NullProjectile>());
-            BossManager.projectiles.Add(pr.GetComponent<NullProjectile>());
+            //BossManager.projectiles.Add(pr.GetComponent<NullProjectile>());
 
             GameObject obj = new GameObject();
             obj.SetActive(false);
             var mainGameManager = obj.AddComponent<NullPlusManager>();
-            GameObject ambient = Instantiate(FindResourceObject<MainGameManager>().transform.Find("Ambience").gameObject, mainGameManager.transform);
-            mainGameManager.ReflectionSetVariable("elevatorScreenPre", FindResourceObject<ElevatorScreen>());
+            var standardManager = FindObjectOfType<MainGameManager>();
+            ElevatorScreen eScreen = standardManager != null ? (ElevatorScreen)standardManager.ReflectionGetVariable("elevatorScreenPre") : FindResourceObject<ElevatorScreen>();
+            mainGameManager.ReflectionSetVariable("elevatorScreenPre", eScreen);
             mainGameManager.ReflectionSetVariable("pitstop", FindResourceObject<MainGameManager>().ReflectionGetVariable("pitstop"));
             mainGameManager.ReflectionSetVariable("happyBaldiPre", PixelInternalAPI.Extensions.GenericExtensions.FindResourceObject<HappyBaldi>());
+            GameObject ambient = Instantiate(FindResourceObject<MainGameManager>().transform.Find("Ambience").gameObject, mainGameManager.transform);
             mainGameManager.ReflectionSetVariable("ambience", ambient.GetComponent<Ambience>());
             mainGameManager.spawnNpcsOnInit = false;
             mainGameManager.spawnImmediately = false;
@@ -188,11 +183,19 @@ namespace NULL.Manager {
                     ld.randomEvents.RemoveAll(x => x != null && x.selection != null && x.selection.Type == RandomEventType.Snap);
                 }
 
-                if (!withNpcs) {
-                    ld.additionalNPCs = 0;
+                if (ld.forcedNpcs == null) {
                     ld.forcedNpcs = new NPC[0];
                 }
-                ld.potentialBaldis = new WeightedNPC[] { new WeightedNPC() { selection = m.Get<NullNPC>(!ld.name.Contains("GLITCH") ? "NULL" : "NULLGLITCH"), weight = 100 } };
+
+                if (!withNpcs) {
+                    ld.forcedNpcs = new NPC[0];
+                }
+                else {
+                    var target = m.Get<NullNPC>(!ld.name.Contains("GLITCH") ? "NULL" : "NULLGLITCH");
+                    var forcedList = new List<NPC>(ld.forcedNpcs);
+                    if (!forcedList.Contains(target)) forcedList.Add(target);
+                    ld.forcedNpcs = forcedList.ToArray();
+                }
             }
 
             SceneObject CreateNullScene(SceneObject baseObj, string levelTitle, string sceneNameSuffix, int levelNo, int? notebookCount = null, LevelType? levelType = null) {
@@ -246,12 +249,22 @@ namespace NULL.Manager {
                 scene.skybox = baseObj.skybox;
                 scene.usesMap = baseObj.usesMap;
 
-                if (scene.levelObject.name.Contains("_NoNpcs")) {
+                if (baseObj.potentialNPCs == null) {
                     scene.potentialNPCs = new List<WeightedNPC>();
                 }
                 else {
                     scene.potentialNPCs = new List<WeightedNPC>(baseObj.potentialNPCs);
                 }
+
+                if (scene.levelObject.name.Contains("_NoNpcs")) {
+                    scene.potentialNPCs.Clear();
+                    scene.additionalNPCs = 0;
+                }
+                else {
+                    scene.additionalNPCs = baseObj.additionalNPCs;
+                }
+
+                scene.previousLevels = new SceneObject[0];
 
                 scene.MarkAsNeverUnload();
                 return scene;
@@ -262,8 +275,8 @@ namespace NULL.Manager {
             List<SceneObject> createdScenes = new List<SceneObject>();
 
             foreach (SceneObject obj in objs) {
-                if (obj.manager.GetType() != typeof(MainGameManager)) continue;
-                if (!(obj.levelObject is CustomLevelObject)) continue;
+                if (obj.manager == null || obj.manager.GetType() != typeof(MainGameManager)) continue;
+                if (obj.levelObject == null || !(obj.levelObject is CustomLevelObject)) continue;
 
                 if (obj.name == "MainLevel_1") {
                     var s = CreateNullScene(obj, "N1", "NULL_F1", 0);
@@ -517,7 +530,9 @@ namespace NULL.Manager {
             endingScene.levelTitle = endingScene.name = "NULL";
             endingScene.manager = finaleMan;
             endingScene.potentialNPCs = new List<WeightedNPC>();
+            endingScene.additionalNPCs = 0;
             endingScene.shopItems = new WeightedItemObject[0];
+            endingScene.previousLevels = new SceneObject[0];
             endingScene.MarkAsNeverUnload();
             endingScene.levelNo = 99;
 
@@ -537,11 +552,16 @@ namespace NULL.Manager {
 
             foreach (var kvp in oldToNewMapping_Scenes) {
                 if (kvp.Key.previousLevels != null && kvp.Key.previousLevels.Length > 0) {
-                    kvp.Value.previousLevels = new SceneObject[kvp.Key.previousLevels.Length];
+                    var validPreviousLevels = new List<SceneObject>();
                     for (int i = 0; i < kvp.Key.previousLevels.Length; i++) {
-                        if (oldToNewMapping_Scenes.ContainsKey(kvp.Key.previousLevels[i]))
-                            kvp.Value.previousLevels[i] = oldToNewMapping_Scenes[kvp.Key.previousLevels[i]];
+                        if (kvp.Key.previousLevels[i] != null && oldToNewMapping_Scenes.ContainsKey(kvp.Key.previousLevels[i])) {
+                            validPreviousLevels.Add(oldToNewMapping_Scenes[kvp.Key.previousLevels[i]]);
+                        }
                     }
+                    kvp.Value.previousLevels = validPreviousLevels.ToArray();
+                }
+                else {
+                    kvp.Value.previousLevels = new SceneObject[0];
                 }
             }
         }

@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Content\CustomComponents\DebugMenu.cs.test" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="0Harmony">
       <HintPath>D:\Program Files (x86)\Steam\steamapps\common\Baldi's Basics Plus\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
