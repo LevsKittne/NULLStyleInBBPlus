@@ -72,6 +72,6 @@ namespace NULL {
     static class ModInfo {
         public const string ID = "levs_kittne.baldiplus.null";
         public const string NAME = "NULL";
-        public const string VERSION = "1.2.7";
+        public const string VERSION = "1.2.8";
     }
 }
