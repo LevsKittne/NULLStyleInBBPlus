@@ -8,21 +8,22 @@ namespace NULL.CustomComponents {
         private IntVector2 lastPos;
         
         private float updateTimer = 0f;
-        private float updateInterval = 0f; 
+        private float updateInterval = 0.05f; 
 
-        private LightController[,] lightMapCache;
+        private LightingController[,] lightMapCache;
 
         private void Start() {
             ec = Singleton<BaseGameManager>.Instance.Ec;
             var field = AccessTools.Field(typeof(EnvironmentController), "lightMap");
-            lightMapCache = (LightController[,])field.GetValue(ec);
+            if (field != null) {
+                lightMapCache = (LightingController[,])field.GetValue(ec);
+            }
             
             lastPos = IntVector2.GetGridPosition(transform.position);
         }
 
         private void Update() {
             if (!NULL.BasePlugin.lightGlitch.Value) return;
-
             if (ec == null || lightMapCache == null) return;
 
             IntVector2 currentPos = IntVector2.GetGridPosition(transform.position);
@@ -47,7 +48,7 @@ namespace NULL.CustomComponents {
 
             for (int x = minX; x <= maxX; x++) {
                 for (int z = minZ; z <= maxZ; z++) {
-                    LightController controller = lightMapCache[x, z];
+                    LightingController controller = lightMapCache[x, z];
                     if (controller != null) {
                         ec.QueueLightControllerForUpdate(controller);
                     }

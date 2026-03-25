@@ -7,6 +7,7 @@ using NULL.NPCs;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using HarmonyLib;
 using static DevTools.ExtraVariables;
 
 namespace NULL.Content {
@@ -53,7 +54,7 @@ namespace NULL.Content {
             Singleton<MusicManager>.Instance.KillMidi();
         }
 
-       protected override void VirtualUpdate() {
+        protected override void VirtualUpdate() {
             base.VirtualUpdate();
             if (Bm == null || Ec == null || nullNpc == null) return;
 
@@ -64,14 +65,24 @@ namespace NULL.Content {
                 var player = Singleton<CoreGameManager>.Instance.GetPlayer(0);
                 if (player != null) {
                     var allNulls = FindObjectsOfType<NullNPC>();
-                    float minDistance = 150f;
+                    float minSqrDistance = 22500f;
+                    bool foundAny = false;
+                    Vector3 pPos = player.transform.position;
+
                     foreach (var n in allNulls) {
-                        n.Hear(player.gameObject, player.transform.position, 127);
-                        float dist = Vector3.Distance(n.transform.position, player.transform.position);
-                        if (dist < minDistance) minDistance = dist;
+                        n.Hear(player.gameObject, pPos, 127);
+                        float sqrDist = (n.transform.position - pPos).sqrMagnitude;
+                        if (sqrDist < minSqrDistance) {
+                            minSqrDistance = sqrDist;
+                            foundAny = true;
+                        }
                     }
-                    float vol = Mathf.Clamp(1f - (minDistance - 75f) / 150f, 0f, 1f);
-                    Singleton<MusicManager>.Instance.MidiPlayer.MPTK_ChannelVolumeSet(9, vol);
+
+                    if (foundAny) {
+                        float actualDist = Mathf.Sqrt(minSqrDistance);
+                        float vol = Mathf.Clamp(1f - (actualDist - 75f) / 150f, 0f, 1f);
+                        Singleton<MusicManager>.Instance.MidiPlayer.MPTK_ChannelVolumeSet(9, vol);
+                    }
                 }
             }
         }
@@ -112,47 +123,38 @@ namespace NULL.Content {
         }
 
         public void CheckBossTrigger() {
-            if (freezeElevators) return;
+            var em = Ec.ElevatorManager;
+            int foundBroken = (int)em.ReflectionGetVariable("foundOutOfOrderElevators");
+            int totalToBreak = em.TotalOutOfOrderElevators;
 
-            bool isFinalFloor = Core.sceneObject.nextLevel != null && Core.sceneObject.nextLevel.name == "NULL";
-            if (!isFinalFloor) return;
+            if (foundBroken == totalToBreak && totalToBreak > 0) {
+                List<Elevator> allElevators = em.Elevators;
+                List<Elevator> brokenElevators = (List<Elevator>)em.ReflectionGetVariable("brokenElevators");
+                Elevator finalExit = null;
 
-            var elevatorManager = Ec.ElevatorManager;
-            var brokenElevators = (List<Elevator>)elevatorManager.ReflectionGetVariable("brokenElevators");
-            int foundBroken = (int)elevatorManager.ReflectionGetVariable("foundOutOfOrderElevators");
-            int totalToBreak = elevatorManager.TotalOutOfOrderElevators;
-
-            if (foundBroken >= totalToBreak) {
-                Elevator targetElevator = null;
-                float minDistance = float.MaxValue;
-                Vector3 playerPos = Singleton<CoreGameManager>.Instance.GetPlayer(0).transform.position;
-
-                foreach (var el in elevatorManager.Elevators) {
+                foreach (var el in allElevators) {
                     if (!el.IsSpawn && !brokenElevators.Contains(el)) {
-                        float d = Vector3.Distance(playerPos, el.transform.position);
-                        if (d < minDistance) {
-                            minDistance = d;
-                            targetElevator = el;
-                        }
+                        finalExit = el;
+                        break;
                     }
                 }
 
-                if (targetElevator != null) {
-                    freezeElevators = true;
+                if (finalExit != null) {
                     var allNulls = Object.FindObjectsOfType<NullNPC>();
                     foreach (var n in allNulls) {
-                        n.Pause(0f);
-                        n.behaviorStateMachine.ChangeState(new NullNPC_Preboss(n, targetElevator));
+                        if (!(n.behaviorStateMachine.currentState is NullNPC_Preboss) && 
+                            !(n.behaviorStateMachine.currentState is NullNPC_Rushing)) {
+                            n.Pause(0f);
+                            n.behaviorStateMachine.ChangeState(new NullNPC_Preboss(n, finalExit));
+                        }
                     }
-                    Debug.Log("NULL: Heading to elevator at " + targetElevator.transform.position);
+                    freezeElevators = true;
                 }
             }
         }
 
-#pragma warning disable IDE0051
         new void OnEnable() => MusicManager.OnMidiEvent += MidiEvent;
         new void OnDisable() => MusicManager.OnMidiEvent -= MidiEvent;
-#pragma warning restore
 
         void MidiEvent(MPTKEvent midiEvent) {
             if (Bm == null) return;
@@ -219,6 +221,15 @@ namespace NULL.Content {
             Shader.SetGlobalFloat("_TileVertexGlitchIntensity", 0f);
             Shader.SetGlobalInt("_ColorGlitching", 0);
             Shader.SetGlobalInt("_SpriteColorGlitching", 0);
+        }
+    }
+
+    [HarmonyPatch(typeof(ElevatorManager), "PlayerBrokeElevator")]
+    internal class ElevatorTriggerPatch {
+        static void Postfix() {
+            if (NullPlusManager.instance != null) {
+                NullPlusManager.instance.CheckBossTrigger();
+            }
         }
     }
 }

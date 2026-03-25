@@ -61,19 +61,45 @@ namespace NULL.Content {
         }
 
         public void SpawnProjectiles(int count) {
+            float minSpacing = 30f; 
+            float minSpacingSqr = minSpacing * minSpacing;
+            var prList = ModManager.m.GetAll<NullProjectile>();
+            if (prList.Length == 0) return;
+
             for (int i = 0; i < count; i++) {
                 if (activeProjectiles >= health) break;
 
-                Cell spawnCell = RandomCellFromHallway ?? ec.RandomCell(false, false, false);
-                if (spawnCell == null) continue;
+                Vector3 finalPos = Vector3.zero;
+                bool found = false;
 
-                var prList = ModManager.m.GetAll<NullProjectile>();
-                if (prList.Length > 0) {
+                for (int attempt = 0; attempt < 15; attempt++) {
+                    Cell spawnCell = RandomCellFromHallway ?? ec.RandomCell(false, false, false);
+                    if (spawnCell == null) continue;
+
+                    Vector3 potentialPos = spawnCell.FloorWorldPosition;
+                    bool tooClose = false;
+
+                    var existing = Object.FindObjectsOfType<NullProjectile>();
+                    foreach (var p in existing) {
+                        Vector3 diff = potentialPos - p.transform.position;
+                        if (diff.sqrMagnitude < minSpacingSqr) {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+
+                    if (!tooClose) {
+                        finalPos = potentialPos;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
                     var projectile = Instantiate(prList[Random.Range(0, prList.Length)]);
-                    projectile.transform.position = spawnCell.FloorWorldPosition;
-                    projectile.spawnPoint = projectile.transform.position;
-                    
-                    activeProjectiles++; 
+                    projectile.transform.position = finalPos;
+                    projectile.spawnPoint = finalPos;
+                    activeProjectiles++;
                 }
             }
         }
@@ -89,9 +115,7 @@ namespace NULL.Content {
             health -= val;
             activeProjectiles--;
 
-            if (health == 1) {
-                MusMan.HangMidi(true, true);
-            }
+            MusMan.HangMidi(true, true);
 
             if (!BossActive) {
                 BossActive = true;
@@ -112,6 +136,7 @@ namespace NULL.Content {
 
             if (health <= 0) {
                 BossActive = false;
+                MusMan.HangMidi(false);
                 RemoveAllProjectiles();
                 Singleton<BaseGameManager>.Instance.LoadNextLevel();
             }

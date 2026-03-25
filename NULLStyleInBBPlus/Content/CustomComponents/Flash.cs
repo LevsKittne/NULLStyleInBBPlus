@@ -32,7 +32,7 @@ namespace NULL.CustomComponents {
             renderer.SetPropertyBlock(spriteProperties);
 
             if (BossManager.Instance.BossActive) {
-                if (BossManager.Instance.health > 1 && BossManager.Instance.health < 10)
+                if (BossManager.Instance.health > 1)
                     Singleton<MusicManager>.Instance.HangMidi(false, false);
             }
         }

@@ -40,7 +40,19 @@ namespace NULL {
             Manager.OptionsManager.Register();
 
             harmony.PatchAllConditionals();
-            
+
+            try {
+                var votingType = System.Type.GetType("BaldisBasicsPlusAdvanced.Game.Events.VotingEvent, BaldisBasicsPlusAdvanced");
+                if (votingType != null) {
+                    var original = AccessTools.Method(votingType, "AttractAllNonVoters");
+                    var prefix = AccessTools.Method(typeof(NULLStyleInBBPlus.ModPatches.VotingFixPatch), "Prefix");
+                    if (original != null && prefix != null) {
+                        harmony.Patch(original, new HarmonyMethod(prefix));
+                    }
+                }
+            }
+            catch { }
+
             CriminalPackCompat.Init(harmony);
 
             LoadingEvents.RegisterOnAssetsLoaded(Info, Manager.ModManager.LoadContent(), LoadingEventOrder.Pre);

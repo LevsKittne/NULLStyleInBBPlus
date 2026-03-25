@@ -3,15 +3,15 @@ using NULL.Manager;
 using UnityEngine;
 
 namespace NULL.ModPatches {
-    [HarmonyPatch(typeof(LightController))]
+    [HarmonyPatch(typeof(LightingController))]
     internal class LightingPatch {
         
-        private static AccessTools.FieldRef<LightController, Color> colorRef = 
-            AccessTools.FieldRefAccess<LightController, Color>("color");
+        private static AccessTools.FieldRef<LightingController, Color> colorRef = 
+            AccessTools.FieldRefAccess<LightingController, Color>("color");
 
         [HarmonyPatch("UpdateLighting")]
         [HarmonyPostfix]
-        private static void Postfix(LightController __instance) {
+        private static void Postfix(LightingController __instance) {
             if (!NULL.BasePlugin.lightGlitch.Value) return;
             if (ModCache.NullNPC == null || !ModCache.NullNPC.gameObject.activeSelf) return;
 
@@ -21,7 +21,7 @@ namespace NULL.ModPatches {
 
             float dx = lightX - bossPos.x;
             float dz = lightZ - bossPos.z;
-            float sqrDist = dx*dx + dz*dz;
+            float sqrDist = dx * dx + dz * dz;
             
             float radius = 100f; 
             float sqrRadius = radius * radius;

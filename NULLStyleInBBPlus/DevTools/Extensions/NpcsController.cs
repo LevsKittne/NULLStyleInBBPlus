@@ -76,9 +76,9 @@ namespace DevTools {
                 base.Enter();
                 npc.behaviorStateMachine.ChangeNavigationState(new NavigationState_DoNothing(npc, 0));
             }
-            public override void OnStateTriggerStay(Collider other, bool validCollision) { }
-            public override void OnStateTriggerEnter(Collider other, bool validCollision) { }
-            public override void OnStateTriggerExit(Collider other, bool validCollision) { }
+            public override void OnStateTriggerStay(Entity otherEntity, Collider other, bool validCollision) { }
+            public override void OnStateTriggerEnter(Entity otherEntity, Collider other, bool validCollision) { }
+            public override void OnStateTriggerExit(Entity otherEntity, Collider other, bool validCollision) { }
             public override void Update() {
                 base.Update();
                 time -= Time.deltaTime;

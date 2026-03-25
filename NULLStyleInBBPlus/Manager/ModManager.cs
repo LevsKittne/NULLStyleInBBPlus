@@ -80,7 +80,9 @@ namespace NULL.Manager {
             TryRunMethod(LoadCaptions);
             if (Plugins.IsEditor) {
                 yield return "Registering NULL & GLITCH for Level Studio...";
-                EditorCompat.Register();
+                TryRunMethod(() => {
+                    EditorCompat.Register();
+                }, false);
             }
         }
 
