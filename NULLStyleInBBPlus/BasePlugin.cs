@@ -35,7 +35,7 @@ namespace NULL {
             darkAtmosphere = Config.Bind("Null Style settings", "Enable the dark atmosphere", true, "Setting this \"true\" will enable the dark atmosphere, which makes the level darker and more creepy");
             allEvents = Config.Bind("Null Style settings", "Enable all events", false, "If true, all random events will be enabled during the run.");
             disableResultsTV = Config.Bind("Null Style settings", "Disable Results TV", false, "If true, the score screen in the elevator will be hidden and the animation skipped.");
-            lightGlitch = Config.Bind("Null Style settings", "Dynamic Lighting", true, "If true, lights near NULL or GLITCH will flicker.");
+            lightGlitch = Config.Bind("Null Style settings", "Dynamic Lighting", false, "If true, lights near NULL or GLITCH will flicker.");
             gameCrash = Config.Bind("Null Style settings", "Game Crash", true, "If true, the game will close itself when NULL or GLITCH catches you, simulating a crash.");
             nullHealth = Config.Bind("Null Style settings", "Health", 10, "Setting a custom amount of null's health");
             extraFloors = Config.Bind("Null Style settings", "Extra Floors", false, "Adds Floor 4 and Floor 5 to the run (Harder difficulty).");
