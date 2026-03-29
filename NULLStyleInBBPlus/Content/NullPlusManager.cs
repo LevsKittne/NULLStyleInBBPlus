@@ -47,6 +47,18 @@ namespace NULL.Content {
                 hud.BaldiTv.gameObject.TryAddComponent<CustomComponents.NullTV>();
         }
 
+        protected override void AllNotebooks() {
+            if (ModManager.NullStyle) {
+                this.ReflectionSetVariable("allNotebooksFound", true);
+                Ec.ElevatorManager.SetTotalOutOfOrderElevators(Ec.Elevators.Count - 1);
+                Ec.ElevatorManager.SetAllElevators(ElevatorState.OpenForExit);
+                Shader.SetGlobalColor("_SkyboxColor", Color.black);
+                RenderSettings.fogColor = Color.black;
+                return;
+            }
+            base.AllNotebooks();
+        }
+
         public override void BeginPlay() {
             base.BeginPlay();
             if (BasePlugin.darkAtmosphere.Value && darkAmbience != null)
@@ -56,6 +68,10 @@ namespace NULL.Content {
 
         protected override void VirtualUpdate() {
             base.VirtualUpdate();
+            if (ModManager.NullStyle) {
+                Shader.SetGlobalColor("_SkyboxColor", Color.black);
+                if (RenderSettings.fogColor == Color.red) RenderSettings.fogColor = Color.black;
+            }
             if (Bm == null || Ec == null || nullNpc == null) return;
 
             if (Bm.BossActive) {
@@ -123,6 +139,9 @@ namespace NULL.Content {
         }
 
         public void CheckBossTrigger() {
+            var cgm = Singleton<CoreGameManager>.Instance;
+            if (cgm.sceneObject.nextLevel == null || cgm.sceneObject.nextLevel.name != "NULL") return;
+
             var em = Ec.ElevatorManager;
             int foundBroken = (int)em.ReflectionGetVariable("foundOutOfOrderElevators");
             int totalToBreak = em.TotalOutOfOrderElevators;
@@ -140,7 +159,7 @@ namespace NULL.Content {
                 }
 
                 if (finalExit != null) {
-                    var allNulls = Object.FindObjectsOfType<NullNPC>();
+                    var allNulls = UnityEngine.Object.FindObjectsOfType<NullNPC>();
                     foreach (var n in allNulls) {
                         if (!(n.behaviorStateMachine.currentState is NullNPC_Preboss) && 
                             !(n.behaviorStateMachine.currentState is NullNPC_Rushing)) {

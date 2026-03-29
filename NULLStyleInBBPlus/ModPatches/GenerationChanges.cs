@@ -41,6 +41,15 @@ namespace NULL.ModPatches {
             return !ModManager.NullStyle;
         }
 
+        private static bool IsForbiddenItem(ItemObject item) {
+            if (item == null) return false;
+            
+            string n = item.name;
+            return item.itemType == Items.Points ||
+                    item.itemType == Items.BusPass ||
+                   item.itemType == Items.Apple;
+        }
+
         [HarmonyPatch(typeof(LevelBuilder), "StartGenerate")]
         [HarmonyPrefix]
         private static void ModifyGenerationParameters(LevelBuilder __instance) {
@@ -48,6 +57,18 @@ namespace NULL.ModPatches {
             if (!ModManager.NullStyle && !ModManager.GlitchStyle && !ModManager.DoubleTrouble) return;
 
             LevelGenerationParameters ld = __instance.ld;
+
+            if (ld.potentialItems != null) {
+                ld.potentialItems = ld.potentialItems.Where(wItem => !IsForbiddenItem(wItem.selection)).ToArray();
+            }
+
+            if (ld.items != null) {
+                ld.items = ld.items.Where(wItem => !IsForbiddenItem(wItem.selection)).ToArray();
+            }
+
+            if (ld.forcedItems != null) {
+                ld.forcedItems.RemoveAll(item => IsForbiddenItem(item));
+            }
 
             if (ld.randomEvents != null) {
                 ld.randomEvents = ld.randomEvents.Where(ev => {
@@ -130,9 +151,9 @@ namespace NULL.ModPatches {
         [HarmonyPrefix]
         static bool BlockAllEvents(RandomEvent randomEvent) {
             if (IsEditor()) return true;
-            if (ModManager.NullStyle) {
-                if (randomEvent.Type == RandomEventType.Fog || 
-                    randomEvent.Type == RandomEventType.MysteryRoom || 
+            if (ModManager.NullStyle && !BasePlugin.allEvents.Value) {
+                if (randomEvent.Type == RandomEventType.Fog ||
+                    randomEvent.Type == RandomEventType.MysteryRoom ||
                     randomEvent.Type == RandomEventType.Party) return true;
                 if (randomEvent.GetType().Name == "VotingEvent") return true;
                 return false;

@@ -440,7 +440,7 @@ namespace NULL.Manager {
                 prefab = Find<Transform>("Decor_Papers")
             });
             data.basicObjects.Add(new BasicObjectData() {
-                position = new Vector3(55, 0, 52),
+                position = new Vector3(58.3f, 0f, 52f),
                 prefab = Find<Transform>("FilingCabinet_Short"),
                 rotation = Quaternion.Euler(0, 270, 0)
             });

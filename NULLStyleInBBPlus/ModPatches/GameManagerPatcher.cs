@@ -2,6 +2,8 @@
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using NULL.Manager;
+using UnityEngine;
 
 namespace NULL.ModPatches {
     [ConditionalPatchNULL]
@@ -9,7 +11,12 @@ namespace NULL.ModPatches {
     internal class GameManagerPatcher {
         [HarmonyPatch(typeof(MainGameManager), "CreateHappyBaldi")]
         [HarmonyPrefix]
-        static bool CreateHappyBaldi() => false;
+        static bool CreateHappyBaldi() => !ModManager.NullStyle;
+
+        [HarmonyPatch(typeof(BaseGameManager), "AllNotebooks")]
+        [HarmonyPriority(Priority.First)]
+        [HarmonyPrefix]
+        static bool BlockBaseAllNotebooks() => !ModManager.NullStyle;
 
         [HarmonyPatch(typeof(MainGameManager), nameof(MainGameManager.BeginPlay))]
         [HarmonyTranspiler]

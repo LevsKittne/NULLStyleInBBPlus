@@ -166,7 +166,7 @@ namespace NULL.NPCs {
 
         public new float Delay => (slapCurve.Evaluate((float)this.ReflectionGetVariable("anger") + (float)this.ReflectionGetVariable("extraAnger")));
 
-        public new float Speed => (speedCurve.Evaluate((float)this.ReflectionGetVariable("anger")) + baseSpeed + (float)this.ReflectionGetVariable("extraAnger")) * 0.25f;
+        public new float Speed => (speedCurve.Evaluate((float)this.ReflectionGetVariable("anger")) + baseSpeed + (float)this.ReflectionGetVariable("extraAnger")) * 0.375f; 
 
         public void FlickerLights(bool enable) {
             if (!enable || Hidden) return;

@@ -3,7 +3,9 @@ using HarmonyLib;
 using MTM101BaldAPI.Reflection;
 using NULL.Content;
 using NULL.NPCs;
+using System;
 using System.Collections;
+using System.Reflection;
 using UnityEngine;
 
 namespace NULL.Manager.CompatibilityModule {
@@ -12,7 +14,29 @@ namespace NULL.Manager.CompatibilityModule {
     internal class BBTimesCompat {
         internal static float _fixedAnger;
         internal static Coroutine angerCoroutine;
-        public class CompatPatchBBTimes : ConditionalPatchNULL { public override bool ShouldPatch() => base.ShouldPatch() && Plugins.IsTimes; }
+
+        public class CompatPatchBBTimes : ConditionalPatchNULL {
+            public override bool ShouldPatch() => base.ShouldPatch() && Plugins.IsTimes;
+        }
+
+        [HarmonyPatch]
+        static class BBTimesRedBlocker {
+            static MethodBase TargetMethod() => 
+                AccessTools.Method("BBTimes.ModPatches.EnvironmentPatches.MainGameManagerPatches:REDAnimation");
+            [HarmonyPrefix]
+            static bool Prefix() => !ModManager.NullStyle;
+            static bool Prepare() => TargetMethod() != null;
+        }
+
+        [HarmonyPatch]
+        static class BBTimesAngerBlocker {
+            static MethodBase TargetMethod() => 
+                AccessTools.Method("BBTimes.ModPatches.EnvironmentPatches.MainGameManagerPatches:BaldiAngerPhase");
+            [HarmonyPrefix]
+            static bool Prefix() => !ModManager.NullStyle;
+            static bool Prepare() => TargetMethod() != null;
+        }
+
         [HarmonyPatch(typeof(MonoBehaviour), nameof(MonoBehaviour.StartCoroutine), new[] { typeof(IEnumerator) })]
         [HarmonyPostfix]
         static void GetAngerCoroutine(IEnumerator routine, Coroutine __result) {
@@ -23,10 +47,11 @@ namespace NULL.Manager.CompatibilityModule {
         [HarmonyPatch(typeof(BossManager), nameof(BossManager.StartBossIntro))]
         [HarmonyPrefix]
         static void OnStartBossIntro(BossManager __instance) {
-            var allNulls = Object.FindObjectsOfType<NullNPC>();
+            var allNulls = UnityEngine.Object.FindObjectsOfType<NullNPC>();
             foreach (var n in allNulls) {
                 try {
-                    n.StopCoroutine(angerCoroutine);
+                    if (angerCoroutine != null)
+                        n.StopCoroutine(angerCoroutine);
                 }
                 catch { }
                 n.SetAnger(_fixedAnger);
@@ -34,86 +59,20 @@ namespace NULL.Manager.CompatibilityModule {
             Singleton<MusicManager>.Instance.StopFile();
         }
 
-        [HarmonyPatch(typeof(NullPlusManager), "OnElevatorClosed")]
+        [HarmonyPatch(typeof(ElevatorManager), "PlayerBrokeElevator")]
         [HarmonyPostfix]
-        static void StoreAngerBeforeRage(NullPlusManager __instance) {
-            bool isFinalFloor = false;
-            if (Singleton<CoreGameManager>.Instance.sceneObject.nextLevel != null &&
-                Singleton<CoreGameManager>.Instance.sceneObject.nextLevel.name == "NULL") {
-                isFinalFloor = true;
-            }
-
-            if (!isFinalFloor) return;
-
-            int closed = (int)__instance.ReflectionGetVariable("elevatorsClosed");
-            int toClose = (int)__instance.ReflectionGetVariable("elevatorsToClose");
-
-            if (toClose == 0 && closed > 0)
-                _fixedAnger = (float)__instance.nullNpc.ReflectionGetVariable("anger");
-        }
-
-        /*
-        [HarmonyPatch(typeof(MainGameManagerPatches), nameof(MainGameManagerPatches.REDAnimation))]
-        [HarmonyTranspiler]
-        static IEnumerable<CodeInstruction> REDAnimation_Enable(IEnumerable<CodeInstruction> instructs) {
-            var list = new List<CodeInstruction>(instructs);
-            bool skipInstructions = false;
-
-            var m = new CodeMatcher(list)
-                .MatchForward(false,
-                new TextCodeMatch(OpCodes.Ldarg_1),
-                new TextCodeMatch(OpCodes.Callvirt, "get_name"),
-                new TextCodeMatch(OpCodes.Ldstr, "Lvl3"))
-                .RemoveInstructions(4)
-                .Insert(Transpilers.EmitDelegate<System.Func<bool>>(() => Singleton<CoreGameManager>.Instance.sceneObject.name.EndsWith("F3")));
-
-            list = new List<CodeInstruction>(m.InstructionEnumeration());
-
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (list[i].opcode == OpCodes.Ldsfld && list[i].OperandIs("endGameAnimation"))
-                {
-                    if (list[i + 1].opcode.ToString().ToLower().Contains("brfalse") &&
-                    list[i + 2].opcode == OpCodes.Ldarg_1)
-                    {
-                        skipInstructions = true;
+        static void StoreAngerBeforeRage(ElevatorManager __instance) {
+            if (NullPlusManager.instance == null) return;
+            var cgm = Singleton<CoreGameManager>.Instance;
+            if (cgm.sceneObject.nextLevel != null && cgm.sceneObject.nextLevel.name == "NULL") {
+                int closed = (int)__instance.ReflectionGetVariable("foundOutOfOrderElevators");
+                int toClose = __instance.TotalOutOfOrderElevators;
+                if (toClose > 0 && closed >= toClose) {
+                    if (NullPlusManager.instance.nullNpc != null) {
+                        _fixedAnger = (float)NullPlusManager.instance.nullNpc.ReflectionGetVariable("anger");
                     }
                 }
-                if (skipInstructions && list[i].opcode == OpCodes.Ret)
-                {
-                    skipInstructions = false;
-                    continue;
-                }
-                if (!skipInstructions)
-                {
-                    yield return list[i];
-                }
             }
         }
-
-        [HarmonyPatch(typeof(FocusedStudent), nameof(FocusedStudent.Disturbed))]
-        [HarmonyTranspiler]
-        static IEnumerable<CodeInstruction> NullReactionToDistrubingStudent(IEnumerable<CodeInstruction> i) => new CodeMatcher(i)
-            .MatchForward(true,
-            new TextCodeMatch(OpCodes.Ldarg_0),
-            new TextCodeMatch(OpCodes.Ldc_I4_1),
-            new TextCodeMatch(OpCodes.Stfld, "shaking"),
-            new TextCodeMatch(OpCodes.Ldarg_0))
-            .InsertAndAdvance(Transpilers.EmitDelegate<System.Action>(() =>
-            {
-                if (BasePlugin.characters.Value || NullPlusManager.instance.nullNpc.isGlitch || ModManager.GlitchStyle) return;
-
-                var n = NullPlusManager.instance.nullNpc;
-                var aud = n.AudMan;
-                aud.FlushQueue(true);
-                aud.audioDevice.clip = ModManager.m.Get<SoundObject>("Null_PreBoss_Start").soundClip;
-                aud.audioDevice.time = 7.25f;
-                aud.audioDevice.Play();
-                n.GetAngry(69f);
-                n.slideMode = true;
-                ExtraVariables.ec.MakeNoise(ExtraVariables.pm.transform.position, 69);
-            }))
-            .InstructionEnumeration();
-            */
     }
 }

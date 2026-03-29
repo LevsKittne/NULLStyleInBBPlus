@@ -25,6 +25,9 @@
     <Reference Include="BaldisBasicsPlusAdvanced">
       <HintPath>D:\Program Files (x86)\Steam\steamapps\common\Baldi's Basics Plus\BepInEx\plugins\BaldisBasicsPlusAdvanced.dll</HintPath>
     </Reference>
+    <Reference Include="BBExtraContent">
+      <HintPath>D:\Program Files (x86)\Steam\steamapps\common\Baldi's Basics Plus\BepInEx\plugins\BBExtraContent.dll</HintPath>
+    </Reference>
     <Reference Include="BepInEx">
       <HintPath>D:\Program Files (x86)\Steam\steamapps\common\Baldi's Basics Plus\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
